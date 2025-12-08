@@ -31,6 +31,9 @@ jobs:
       - name: Setup uv
         uses: astral-sh/setup-uv@v3
 
+      - name: Create virtual environment
+        run: uv venv --python 3.10
+
       - name: Install dependencies (pyproject)
         run: |
           uv pip install notion-hugo-deploy/
