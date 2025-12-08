@@ -17,50 +17,35 @@ preserveTaxonomyNames = false
   pagerSize = 10
 
 [params]
-  description = "This blog covers artificial intelligence, productivity, and life insights."
+  description = "a personal blog"
   author = "Binbin Shen"
   mainSections = ["posts"]
 
+[params.social]
+  github = "https://github.com/binbinsh"
+  email = "hello@train.sh"
+
 [params.home]
-  intro = """👋 Welcome! This is a personal blog where I document my learning journey in artificial intelligence, productivity, and record my thoughts on technology and life. Nothing groundbreaking here, just notes and reflections."""
+  intro = """👋 Welcome! This is a personal blog where I share hands-on notes on ML experiments, developer productivity, and open-source, self-hosted workflows. Expect practical guides, automation patterns, and reflections from building, iterating, and bridging real-world experiments with developer-first, open-source problem solving."""
 
 [params.home.tags]
-# Set to 0 or negative to show all tags
-limit = 6
+  # Set to 0 or negative to show all tags
+  limit = 6
 
 [params.home.recent]
-limit = 10
-moreText = "View all posts"
-
-# Menu configuration
-[menu]
-  [[menu.main]]
-    name = "Home"
-    pageRef = "/"
-    identifier = "home"
-    weight = 10
-
-  [[menu.main]]
-    name = "Archive"
-    pageRef = "/archive"
-    identifier = "archive"
-    weight = 20
-  
-  [[menu.main]]
-    name = "Tags"
-    pageRef = "/tags"
-    identifier = "tags"
-    weight = 30
+  limit = 10
 
 [outputs]
   home = ["HTML", "RSS", "JSON"]
 
-[markup.goldmark.parser.attribute]
-block = true
-
 [markup]
-  [markup.goldmark.renderer]
-    unsafe = true
+  [markup.goldmark]
+    [markup.goldmark.parser]
+      [markup.goldmark.parser.attribute]
+        block = true
+    [markup.goldmark.renderer]
+      unsafe = true
+
   [markup.highlight]
     # Enable line numbers and render them in a table
     lineNos = true
