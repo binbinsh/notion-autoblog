@@ -47,10 +47,11 @@ preserveTaxonomyNames = false
       unsafe = true
 
   [markup.highlight]
-    # Enable line numbers and render them in a table
-    lineNos = true
-    lineNumbersInTable = true
+    noClasses = false
+    lineNos = false
+    lineNumbersInTable = false
     anchorLineNos = false
     codeFences = true
-    lineNoStart = 1
-    noClasses = true
+    guessSyntax = true
+    style = "tokyonight-day"
+    styleDark = "tokyonight-night"
