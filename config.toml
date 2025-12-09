@@ -55,3 +55,32 @@ preserveTaxonomyNames = false
     guessSyntax = true
     style = "tokyonight-day"
     styleDark = "tokyonight-night"
+
+
+[caches]
+  [caches.assets]
+    dir = ':resourceDir/_gen'
+    maxAge = -1
+  [caches.getcsv]
+    dir = ':cacheDir/:project'
+    maxAge = -1
+  [caches.getjson]
+    dir = ':cacheDir/:project'
+    maxAge = -1
+  [caches.getresource]
+    dir = ':cacheDir/:project'
+    maxAge = -1
+  [caches.images]
+    dir = ':resourceDir/_gen'
+    maxAge = -1
+  [caches.modules]
+    dir = ':cacheDir/modules'
+    maxAge = -1
+
+[[module.mounts]]
+  source = 'assets'
+  target = 'assets'
+
+[[module.mounts]]
+  source = 'hugo_stats.json'
+  target = 'assets/watching/hugo_stats.json'
