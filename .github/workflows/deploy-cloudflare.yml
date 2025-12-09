@@ -80,6 +80,9 @@ jobs:
         run: npm ci
         working-directory: themes/hugo-trainsh
 
+      - name: Link node_modules to project root
+        run: ln -s themes/hugo-trainsh/node_modules node_modules
+
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v2
         with:
