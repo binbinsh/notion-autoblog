@@ -1,0 +1,19 @@
+name = "trainsh-home"
+main = "../themes/hugo-trainsh/cloudflare/worker.py"
+compatibility_date = "2025-12-09"
+compatibility_flags = ["python_workers"]
+workers_dev = true
+
+routes = [
+  { pattern = "train.sh/api/*", zone_id = "${CLOUDFLARE_ZONE_ID}" },
+  { pattern = "train.sh/*", zone_id = "${CLOUDFLARE_ZONE_ID}" },
+]
+
+[assets]
+directory = "../public"
+binding = "ASSETS"
+not_found_handling = "none"
+
+[[kv_namespaces]]
+binding = "UPVOTES"
+id = "${UPVOTE_KV_NAMESPACE}"

@@ -21,6 +21,12 @@ preserveTaxonomyNames = false
   author = "Binbin Shen"
   mainSections = ["posts"]
 
+[params.upvote]
+  enabled = true
+  endpoint = "/api/upvote"
+  infoEndpoint = "/api/upvote-info"
+  cookieDomain = ""
+
 [params.social]
   github = "https://github.com/binbinsh"
   email = "hello@train.sh"
@@ -56,6 +62,9 @@ preserveTaxonomyNames = false
     style = "tokyonight-day"
     styleDark = "tokyonight-night"
 
+[build]
+  [build.buildStats]
+    enable = true
 
 [caches]
   [caches.assets]

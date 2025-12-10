@@ -4,3 +4,4 @@ content/posts/
 static/images/
 static/videos/
 static/audios/
+cloudflare/wrangler.generated.toml
