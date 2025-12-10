@@ -32,7 +32,7 @@ preserveTaxonomyNames = false
   email = "hello@train.sh"
 
 [params.home]
-  intro = """👋 Welcome! This is a personal blog where I share hands-on notes on ML experiments, developer productivity, and open-source, self-hosted workflows. Expect practical guides, automation patterns, and reflections from building, iterating, and bridging real-world experiments with developer-first, open-source problem solving."""
+  intro = """👋 Welcome! This is a personal blog where I document my learning journey in artificial intelligence, productivity, and record my thoughts on technology and life. Nothing groundbreaking here, just notes and reflections."""
 
 [params.home.tags]
   # Set to 0 or negative to show all tags
