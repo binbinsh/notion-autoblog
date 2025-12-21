@@ -16,7 +16,7 @@ preserveTaxonomyNames = false
 [params]
   author = "Binbin Shen"
   mainSections = ["posts"]
-  description = "Doppio is a double-shot helper for everyday coding workflows—small, focused, and practical."
+  description = "Doppio is a double-shot helper for everyday coding workflows."
 
 [params.upvote]
   enabled = true
@@ -28,8 +28,7 @@ preserveTaxonomyNames = false
   email = "hello@train.sh"
 
 [params.home]
-  intro = """Building **Doppio** — a double-shot helper for everyday coding workflows. Small, focused, and practical.
-<br>"""
+  intro = """Building Doppio☕️☕️ — a double-shot helper for everyday coding workflows."""
 
 [params.home.tags]
   # Set to 0 or negative to show all tags
@@ -50,14 +49,14 @@ preserveTaxonomyNames = false
       unsafe = true
 
   [markup.highlight]
-    noClasses = false
+    # Keep settings aligned with the theme's `render-codeblock.html` hook.
     lineNos = false
     lineNumbersInTable = false
     anchorLineNos = false
     codeFences = true
     guessSyntax = true
-    style = "tokyonight-day"
-    styleDark = "tokyonight-night"
+    lineNoStart = 1
+    noClasses = false
 
 [build]
   [build.buildStats]
