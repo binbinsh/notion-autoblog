@@ -1,6 +1,6 @@
 baseURL = 'https://train.sh/'
 languageCode = 'en-us'
-title = 'Welcome to train.sh'
+title = 'train.sh Doppio'
 theme = 'hugo-trainsh'
 
 # Build settings
@@ -13,13 +13,10 @@ disablePathToLower = false
 removePathAccents = true
 preserveTaxonomyNames = false
 
-[pagination]
-  pagerSize = 10
-
 [params]
-  description = "a personal blog"
   author = "Binbin Shen"
   mainSections = ["posts"]
+  description = "Doppio is a double-shot helper for everyday coding workflows—small, focused, and practical."
 
 [params.upvote]
   enabled = true
@@ -28,18 +25,18 @@ preserveTaxonomyNames = false
   cookieDomain = ""
 
 [params.social]
-  github = "https://github.com/binbinsh"
   email = "hello@train.sh"
 
 [params.home]
-  intro = """👋 Welcome! This is a personal blog where I document my learning journey in artificial intelligence, productivity, and record my thoughts on technology and life. Nothing groundbreaking here, just notes and reflections."""
+  intro = """Building **Doppio** — a double-shot helper for everyday coding workflows. Small, focused, and practical.
+<br>"""
 
 [params.home.tags]
   # Set to 0 or negative to show all tags
   limit = 6
 
 [params.home.recent]
-  limit = 10
+  limit = 15
 
 [outputs]
   home = ["HTML", "RSS", "JSON"]

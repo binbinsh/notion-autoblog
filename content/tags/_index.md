@@ -1,8 +1,6 @@
 ---
 title: "Tags"
-description: "This page lists all tags for my posts. Use them to filter and find articles of interest."
+description: "This page lists all tags. Use them to filter and find posts of interest."
 ---
 
-This page lists all tags for my posts. Use them to filter and find articles of interest.
-
-
+This page lists all tags. Use them to filter and find posts of interest.
