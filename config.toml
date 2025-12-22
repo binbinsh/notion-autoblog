@@ -16,6 +16,7 @@ preserveTaxonomyNames = false
 [params]
   author = "Binbin Shen"
   mainSections = ["posts"]
+  toc = false
   description = "Doppio is a double-shot helper for everyday coding workflows."
 
 [params.upvote]
