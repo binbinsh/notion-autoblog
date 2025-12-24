@@ -31,7 +31,8 @@ preserveTaxonomyNames = false
 
 [params]
   author = "Binbin Shen"
-  mainSections = ["posts"]
+  # Notion slugs currently generate content under /blog/... in CI, so only "blog" is treated as the primary section.
+  mainSections = ["blog"]
   toc = false
   description = "Doppio is a double-shot helper for everyday coding workflows."
 
