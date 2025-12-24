@@ -1,6 +1,6 @@
 ---
-title: "Archive"
-description: "Posts grouped by year."
+title: "所有文章"
+description: "按年份归档的文章列表。"
 ---
 
-Posts grouped by year.
+按年份归档的文章列表。

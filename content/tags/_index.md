@@ -1,6 +1,6 @@
 ---
-title: "Tags"
-description: "This page lists all tags. Use them to filter and find posts of interest."
+title: "标签"
+description: "本页列出所有标签，可用于筛选和查找感兴趣的内容。"
 ---
 
-This page lists all tags. Use them to filter and find posts of interest.
+本页列出所有标签，可用于筛选和查找感兴趣的内容。

@@ -1,7 +1,23 @@
 baseURL = 'https://train.sh/'
-languageCode = 'en-us'
+languageCode = 'zh-CN'
 title = 'train.sh Doppio'
 theme = 'hugo-trainsh'
+
+# Multilingual (Hugo links translations by filename suffix: post.md + post.en.md)
+defaultContentLanguage = "zh"
+defaultContentLanguageInSubdir = false
+hasCJKLanguage = true
+
+[languages]
+  [languages.zh]
+    languageCode = "zh-CN"
+    languageName = "中文"
+    weight = 1
+
+  [languages.en]
+    languageCode = "en-US"
+    languageName = "English"
+    weight = 2
 
 # Build settings
 buildFuture = true
@@ -36,7 +52,7 @@ preserveTaxonomyNames = false
   limit = 6
 
 [params.home.recent]
-  limit = 15
+  limit = 10
 
 [outputs]
   home = ["HTML", "RSS", "JSON"]
