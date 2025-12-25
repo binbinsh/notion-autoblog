@@ -8,4 +8,4 @@ draft = false
 
 Building Doppio☕️ — a coding agent workflow assistant tool.
 
-This blog is generated from Notion docs via [notion-hugo-deploy](https://github.com/binbinsh/notion-hugo-deploy). English posts are auto-translated via [openai/gpt-oss-120b:free](https://openrouter.ai/openai/gpt-oss-120b:free).
+<small>This blog is generated from Notion docs via [notion-hugo-deploy](https://github.com/binbinsh/notion-hugo-deploy). English posts are auto-translated by the [openai/gpt-oss-120b:free](https://openrouter.ai/openai/gpt-oss-120b:free) model.</small>
