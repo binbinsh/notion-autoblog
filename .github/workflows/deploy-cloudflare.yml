@@ -72,11 +72,15 @@ jobs:
             static/images
             static/videos
             static/audios
-          # Cache is mutable (Notion state changes over time), so use a per-run key
-          # and restore the latest match by prefix.
-          key: site-${{ github.ref_name }}-media-${{ github.run_id }}
+          # Use a fixed cache key so the same cache entry is reused across runs.
+          key: site-${{ github.ref_name }}-media-v1
           restore-keys: |
-            site-${{ github.ref_name }}-media-
+            site-${{ github.ref_name }}-
+
+      - name: Log cache status
+        run: |
+          echo "cache-primary-key=${{ steps.site-cache.outputs.cache-primary-key }}"
+          echo "cache-hit=${{ steps.site-cache.outputs.cache-hit }}"
 
       - name: Fix cached file ownership
         if: steps.site-cache.outputs.cache-hit == 'true'
@@ -95,7 +99,7 @@ jobs:
         run: hugo --minify --cleanDestinationDir
 
       - name: Save site cache (media and state)
-        if: always()
+        if: always() && steps.site-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: |
@@ -103,7 +107,7 @@ jobs:
             static/images
             static/videos
             static/audios
-          key: site-${{ github.ref_name }}-media-${{ github.run_id }}
+          key: ${{ steps.site-cache.outputs.cache-primary-key }}
 
       - name: Resolve KV namespace id (UPVOTES)
         env:
