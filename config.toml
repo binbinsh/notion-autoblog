@@ -3,6 +3,19 @@ languageCode = 'zh-CN'
 title = 'train.sh Doppio'
 theme = 'hugo-trainsh'
 
+# Build settings
+buildFuture = true
+buildDrafts = false
+timeZone = 'Asia/Shanghai'
+
+# Disable taxonomy pages (no /tags or /categories).
+disableKinds = ["taxonomy"]
+
+# URL normalization
+disablePathToLower = false
+removePathAccents = true
+preserveTaxonomyNames = false
+
 # Multilingual (Hugo links translations by filename suffix: post.md + post.en.md)
 defaultContentLanguage = "zh"
 defaultContentLanguageInSubdir = false
@@ -14,33 +27,42 @@ hasCJKLanguage = true
     languageName = "中文"
     weight = 1
 
+    [[languages.zh.menu.main]]
+      name = "主页"
+      pageRef = "/"
+      weight = 1
+
+    [[languages.zh.menu.main]]
+      name = "博客"
+      pageRef = "/blog"
+      weight = 10
+
   [languages.en]
     languageCode = "en-US"
     languageName = "English"
     weight = 2
 
-# Build settings
-buildFuture = true
-buildDrafts = false
-timeZone = 'Asia/Shanghai'
+    [[languages.en.menu.main]]
+      name = "Home"
+      pageRef = "/"
+      weight = 1
 
-# URL normalization
-disablePathToLower = false
-removePathAccents = true
-preserveTaxonomyNames = false
+    [[languages.en.menu.main]]
+      name = "Blog"
+      pageRef = "/blog"
+      weight = 10
 
 [params]
   author = "Binbin Shen"
   # Notion slugs currently generate content under /blog/... in CI, so only "blog" is treated as the primary section.
   mainSections = ["blog"]
-  toc = false
   description = "Doppio is a double-shot helper for everyday coding workflows."
 
 [params.upvote]
   enabled = true
   endpoint = "/api/upvote"
   infoEndpoint = "/api/upvote-info"
-  cookieDomain = ""
+  popularEndpoint = "/api/popular"
 
 [params.social]
   email = "hello@train.sh"
@@ -48,12 +70,11 @@ preserveTaxonomyNames = false
 [params.home]
   intro = """Building Doppio☕️☕️ — a double-shot helper for everyday coding workflows."""
 
-[params.home.tags]
-  # Set to 0 or negative to show all tags
-  limit = 6
-
 [params.home.recent]
-  limit = 10
+  limit = 5
+
+[params.home.popular]
+  limit = 5
 
 [outputs]
   home = ["HTML", "RSS", "JSON"]
@@ -75,35 +96,3 @@ preserveTaxonomyNames = false
     guessSyntax = true
     lineNoStart = 1
     noClasses = false
-
-[build]
-  [build.buildStats]
-    enable = true
-
-[caches]
-  [caches.assets]
-    dir = ':resourceDir/_gen'
-    maxAge = -1
-  [caches.getcsv]
-    dir = ':cacheDir/:project'
-    maxAge = -1
-  [caches.getjson]
-    dir = ':cacheDir/:project'
-    maxAge = -1
-  [caches.getresource]
-    dir = ':cacheDir/:project'
-    maxAge = -1
-  [caches.images]
-    dir = ':resourceDir/_gen'
-    maxAge = -1
-  [caches.modules]
-    dir = ':cacheDir/modules'
-    maxAge = -1
-
-[[module.mounts]]
-  source = 'assets'
-  target = 'assets'
-
-[[module.mounts]]
-  source = 'hugo_stats.json'
-  target = 'assets/watching/hugo_stats.json'
