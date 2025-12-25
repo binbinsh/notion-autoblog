@@ -92,7 +92,7 @@ jobs:
         run: uv run notion-hugo-deploy/scripts/notion_sync.py
 
       - name: Build Hugo site
-        run: hugo --minify
+        run: hugo --minify --cleanDestinationDir
 
       - name: Save site cache (media and state)
         if: always()
@@ -146,6 +146,30 @@ jobs:
 
           echo "UPVOTE_KV_NAMESPACE=$existing" >> "$GITHUB_ENV"
 
+      - name: Generate Wrangler config
+        working-directory: cloudflare
+        env:
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          UPVOTE_KV_NAMESPACE: ${{ env.UPVOTE_KV_NAMESPACE }}
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          
+          zone_id = (os.environ.get("CLOUDFLARE_ZONE_ID") or "").strip()
+          kv_id = (os.environ.get("UPVOTE_KV_NAMESPACE") or "").strip()
+          
+          if not zone_id:
+            raise SystemExit("CLOUDFLARE_ZONE_ID is empty")
+          if not kv_id:
+            raise SystemExit("UPVOTE_KV_NAMESPACE is empty")
+          
+          src = Path("wrangler.toml").read_text(encoding="utf-8")
+          out = src.replace("${CLOUDFLARE_ZONE_ID}", zone_id).replace("${UPVOTE_KV_NAMESPACE}", kv_id)
+          Path("wrangler.generated.toml").write_text(out, encoding="utf-8")
+          print("Generated wrangler.generated.toml")
+          PY
+
       - name: Deploy Cloudflare Worker (site + API)
         uses: cloudflare/wrangler-action@v3
         env:
@@ -155,4 +179,4 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: cloudflare
-          command: deploy --config wrangler.toml
+          command: deploy --config wrangler.generated.toml
