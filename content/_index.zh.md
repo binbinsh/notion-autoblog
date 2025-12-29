@@ -10,13 +10,14 @@ draft = false
 
 {{< recent-posts >}}
 
-## 开源项目
+## 项目
 
-这里汇总了我在做的开源项目和一些小工具。
+我的一些开源项目与小工具。
 
-- [notion-hugo-deploy](https://github.com/binbinsh/notion-hugo-deploy) — 用 Notion 写作，使用 Hugo 部署到 Cloudflare Pages。
-- [sketchybar-config](https://github.com/binbinsh/sketchybar-config) — 我的 SketchyBar 配置文件。
-- [hugo-trainsh](https://github.com/binbinsh/hugo-trainsh) — 极简 Hugo 主题。
-- [dataset-inspector](https://github.com/binbinsh/dataset-inspector) — 用于检查 litData、MosaicML Streaming、WebDataset 分片，并在线预览 Hugging Face 或 Zenodo 数据集的桌面 UI。
-- [notion-caldav-sync](https://github.com/binbinsh/notion-caldav-sync) — 在 Apple Calendar 中展示 Notion 任务，强调稳定与实时。
-- [cc-adapter](https://github.com/binbinsh/cc-adapter) — 让 Claude Code 以 Anthropic /v1/messages 协议访问 Codex, Cursor, Copilot, Antigravity, Poe 订阅或 LM Studio。
+- [cc-adapter — Claude Code对接Codex/Antigravity/Copilot等订阅](https://github.com/binbinsh/cc-adapter)
+- [notion-hugo-deploy — 将Notion文章用Hugo发布](https://github.com/binbinsh/notion-hugo-deploy)
+- [notion-caldav-sync — 将Notion任务显示到Apple Calendar上](https://github.com/binbinsh/notion-caldav-sync)
+- [dataset-inspector — 大规模数据shards和HF数据预览工具](https://github.com/binbinsh/dataset-inspector)
+- [hugo-trainsh — 支持upvote的极简Hugo博客主题](https://github.com/binbinsh/hugo-trainsh)
+- [sketchybar-config — 用Sketchybar替代macOS菜单栏](https://github.com/binbinsh/sketchybar-config)
+

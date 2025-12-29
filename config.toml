@@ -24,7 +24,7 @@ hasCJKLanguage = true
 [languages]
   [languages.zh]
     languageCode = "zh-CN"
-    languageName = "lang2"
+    languageName = "中文"
     weight = 2
 
     [[languages.zh.menu.main]]
@@ -39,7 +39,7 @@ hasCJKLanguage = true
 
   [languages.en]
     languageCode = "en-US"
-    languageName = "lang1"
+    languageName = "English"
     weight = 1
 
     [[languages.en.menu.main]]
