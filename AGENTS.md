@@ -1,4 +1,4 @@
-# train.sh Doppio
+# Instructions for train.sh
 
 ## General Instructions
 - Always `use context7` for the most recent docs and best practices.

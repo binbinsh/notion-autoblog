@@ -1,6 +1,6 @@
 baseURL = 'https://train.sh/'
-languageCode = 'zh-CN'
-title = 'train.sh Doppio'
+languageCode = 'en-US'
+title = 'Welcome to train.sh'
 theme = 'hugo-trainsh'
 
 # Build settings
@@ -17,15 +17,15 @@ removePathAccents = true
 preserveTaxonomyNames = false
 
 # Multilingual (Hugo links translations by filename suffix: post.md + post.en.md)
-defaultContentLanguage = "zh"
+defaultContentLanguage = "en"
 defaultContentLanguageInSubdir = false
 hasCJKLanguage = true
 
 [languages]
   [languages.zh]
     languageCode = "zh-CN"
-    languageName = "中文"
-    weight = 1
+    languageName = "lang2"
+    weight = 2
 
     [[languages.zh.menu.main]]
       name = "主页"
@@ -39,8 +39,8 @@ hasCJKLanguage = true
 
   [languages.en]
     languageCode = "en-US"
-    languageName = "English"
-    weight = 2
+    languageName = "lang1"
+    weight = 1
 
     [[languages.en.menu.main]]
       name = "Home"
@@ -62,7 +62,6 @@ hasCJKLanguage = true
   enabled = true
   endpoint = "/api/upvote"
   infoEndpoint = "/api/upvote-info"
-  popularEndpoint = "/api/popular"
 
 [params.social]
   email = "hello@train.sh"
@@ -71,9 +70,6 @@ hasCJKLanguage = true
   intro = """Building Doppio☕️☕️ — a double-shot helper for everyday coding workflows."""
 
 [params.home.recent]
-  limit = 5
-
-[params.home.popular]
   limit = 5
 
 [outputs]
