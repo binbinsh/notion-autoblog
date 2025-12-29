@@ -58,6 +58,9 @@ hasCJKLanguage = true
   mainSections = ["blog"]
   description = "Doppio is a double-shot helper for everyday coding workflows."
 
+[params.translate]
+  sourceLanguage = "zh"
+
 [params.upvote]
   enabled = true
   endpoint = "/api/upvote"
