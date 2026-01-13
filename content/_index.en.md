@@ -12,7 +12,7 @@ This is my personal blog for notes and sharing my thoughts and practice on devel
 
 Some of my open-source projects and small tools.
 
-- [tmux-trainsh — The missing training automation for public cloud GPU and storage](https://github.com/binbinsh/tmux-trainsh)
+- [tmux-trainsh — Training automation for public cloud GPU and storage](https://github.com/binbinsh/tmux-trainsh)
 - [notion-hugo-deploy — Publish Notion posts with Hugo](https://github.com/binbinsh/notion-hugo-deploy)
 - [notion-caldav-sync — Show Notion tasks in Apple Calendar](https://github.com/binbinsh/notion-caldav-sync)
 - [dataset-inspector — Large-scale dataset shards and HF dataset preview tool](https://github.com/binbinsh/dataset-inspector)
