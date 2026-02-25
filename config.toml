@@ -8,9 +8,6 @@ buildFuture = true
 buildDrafts = false
 timeZone = 'Asia/Shanghai'
 
-# Disable taxonomy pages (no /tags or /categories).
-disableKinds = ["taxonomy"]
-
 # URL normalization
 disablePathToLower = false
 removePathAccents = true
