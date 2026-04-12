@@ -1,5 +1,5 @@
 name = "notion-autoblog"
-main = "../themes/hugo-trainsh/cloudflare/worker.py"
+main = "../../../modules/upvote/cloudflare/worker.py"
 compatibility_date = "2025-12-09"
 compatibility_flags = ["python_workers"]
 workers_dev = true

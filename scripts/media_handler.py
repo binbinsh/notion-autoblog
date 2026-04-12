@@ -18,9 +18,10 @@ class MediaHandler:
         self.image_dir = os.path.join(self.static_dir_abs, "images")
         self.video_dir = os.path.join(self.static_dir_abs, "videos")
         self.audio_dir = os.path.join(self.static_dir_abs, "audios")
+        self.file_dir = os.path.join(self.static_dir_abs, "files")
 
         # Create directories
-        for dir_path in [self.image_dir, self.video_dir, self.audio_dir]:
+        for dir_path in [self.image_dir, self.video_dir, self.audio_dir, self.file_dir]:
             os.makedirs(dir_path, exist_ok=True)
 
     def download_media(self, url: str, media_type: str = "image", last_edited_time: Optional[str] = None) -> Optional[str]:
@@ -38,7 +39,7 @@ class MediaHandler:
                         logger.info(f"Media cache MISS (file missing): {cached_path}; re-downloading")
 
             # Generate stable filename (prefers Notion file UUID when available)
-            filename = self._generate_filename(url)
+            filename = self._generate_filename(url, media_type)
 
             # Determine save directory
             if media_type == "image":
@@ -50,6 +51,9 @@ class MediaHandler:
             elif media_type == "audio":
                 save_dir = self.audio_dir
                 relative_path = f"/audios/{filename}"
+            elif media_type in {"file", "pdf"}:
+                save_dir = self.file_dir
+                relative_path = f"/files/{filename}"
             else:
                 return url
 
@@ -88,7 +92,7 @@ class MediaHandler:
             logger.error(f"Error downloading media from {url}: {e}")
             return url  # Return original URL on failure
 
-    def _generate_filename(self, url: str) -> str:
+    def _generate_filename(self, url: str, media_type: str) -> str:
         """Generate a stable filename for the URL.
 
         - For Notion-hosted files, use the file UUID as the basename.
@@ -103,21 +107,30 @@ class MediaHandler:
         s3_match = re.search(r"s3\..*\.amazonaws\.com/([0-9a-fA-F\-]{36})/([0-9a-fA-F\-]{36})/", url)
         if s3_match:
             file_uuid = s3_match.group(2).lower()
-            return f"{file_uuid}{ext}"
+            return f"{file_uuid}{self._normalize_extension(ext, media_type)}"
 
         # Legacy notion-static URLs
         m = re.search(r"secure\.notion-static\.com/([0-9a-fA-F\-]{36})/", url)
         if m:
             file_uuid = m.group(1).lower()
-            if not ext:
-                ext = ".jpg"
-            return f"{file_uuid}{ext}"
+            return f"{file_uuid}{self._normalize_extension(ext, media_type)}"
 
         # External: md5(url) with best-guess extension
         hash_name = hashlib.md5(url.encode()).hexdigest()[:8]
-        if not ext:
-            ext = ".jpg"
-        return f"{hash_name}{ext}"
+        return f"{hash_name}{self._normalize_extension(ext, media_type)}"
+
+    def _normalize_extension(self, ext: str, media_type: str) -> str:
+        if ext:
+            return ext
+
+        defaults = {
+            "image": ".jpg",
+            "video": ".mp4",
+            "audio": ".mp3",
+            "pdf": ".pdf",
+            "file": ".bin",
+        }
+        return defaults.get(media_type, ".bin")
 
     def _optimize_image(self, file_path: str, max_width: int = 1920):
         """Optimize image size and quality"""

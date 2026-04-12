@@ -1,0 +1,64 @@
+.notion-upvote-widget {
+  display: inline-block;
+}
+
+.notion-upvote-button {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  cursor: pointer;
+}
+
+.notion-upvote-button:disabled {
+  opacity: 0.9;
+  cursor: default;
+}
+
+.notion-upvote-button--active {
+  color: var(--accent-color, #2563eb);
+}
+
+.notion-upvote-count {
+  min-height: 1rem;
+  font-size: 0.85rem;
+}
+
+[data-theme="retro"] .notion-upvote-widget {
+  padding: 0.75em 1em;
+  border: 3px solid var(--dialog-border);
+  box-shadow: var(--dialog-shadow);
+  background: var(--dialog-bg);
+}
+
+[data-theme="retro"] .notion-upvote-button {
+  color: var(--text-color);
+  gap: 0.25em;
+}
+
+[data-theme="retro"] .notion-upvote-button:not(:disabled):hover {
+  color: var(--gold-color);
+}
+
+[data-theme="retro"] .notion-upvote-button svg {
+  stroke-width: 3;
+}
+
+[data-theme="retro"] .notion-upvote-button--active {
+  color: var(--gold-color);
+}
+
+[data-theme="retro"] .notion-upvote-button--active svg {
+  fill: var(--gold-color);
+  stroke: var(--gold-color);
+}
+
+[data-theme="retro"] .notion-upvote-count {
+  font-family: var(--font-pixel);
+  font-size: 0.875rem;
+}

@@ -13,7 +13,7 @@ from media_handler import MediaHandler
 from logging_utils import setup_logging
 from cache_manager import CacheManager
 from translation_service import OpenRouterTranslator
-from hugo_config import infer_languages_from_hugo
+from hugo_config import infer_languages_from_config, read_hugo_config
 
 # Configure logging
 setup_logging()
@@ -109,7 +109,8 @@ def main():
         media_handler = MediaHandler(static_dir, cache_manager=cache_manager)
         hugo_converter = HugoConverter(content_dir, media_handler, cache_manager=cache_manager)
 
-        languages = infer_languages_from_hugo(str(site_dir))
+        hugo_config = read_hugo_config(str(site_dir))
+        languages = infer_languages_from_config(hugo_config)
         if languages:
             logger.info(
                 "Inferred languages from Hugo: %s (default: %s)",

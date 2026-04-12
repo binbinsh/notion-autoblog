@@ -1,0 +1,11 @@
+[notion_upvote_hint]
+other = "点击点赞"
+
+[notion_upvote_title]
+other = "点赞这篇文章"
+
+[notion_upvote_count]
+other = "点赞数"
+
+[notion_upvoted_title]
+other = "已点赞"

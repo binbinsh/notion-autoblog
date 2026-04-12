@@ -4,14 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "notion-autoblog"
-version = "0.3.1"
+version = "0.4.0"
 description = "Sync Notion databases into Hugo content with media handling and deployment templates"
 readme = "README.md"
 authors = [{ name = "BINBIN SHEN" }]
 license = { text = "Apache-2.0" }
 requires-python = ">=3.10"
 dependencies = [
-  "notion-client",
   "requests",
   "python-dotenv",
   "pyyaml",
@@ -38,4 +37,5 @@ py-modules = [
   "retry_decorator",
   "concurrent_downloader",
   "translation_service",
+  "notion_markdown",
 ]

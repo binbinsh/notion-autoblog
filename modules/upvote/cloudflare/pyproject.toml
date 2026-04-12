@@ -1,0 +1,5 @@
+[project]
+name = "notion-autoblog-upvote-worker"
+version = "0.1.0"
+description = "Cloudflare Worker backend for notion-autoblog upvote API."
+requires-python = ">=3.10"

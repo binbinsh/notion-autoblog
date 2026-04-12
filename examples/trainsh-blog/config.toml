@@ -3,6 +3,15 @@ languageCode = 'en-US'
 title = 'TrainShell Blog'
 theme = 'hugo-trainsh'
 
+[module]
+  replacements = "github.com/binbinsh/notion-autoblog/modules/translation -> ../../../modules/translation,github.com/binbinsh/notion-autoblog/modules/upvote -> ../../../modules/upvote"
+
+  [[module.imports]]
+    path = "github.com/binbinsh/notion-autoblog/modules/translation"
+
+  [[module.imports]]
+    path = "github.com/binbinsh/notion-autoblog/modules/upvote"
+
 # Build settings
 buildFuture = true
 buildDrafts = false

@@ -1,0 +1,8 @@
+name = "notion-autoblog-upvote"
+main = "worker.py"
+compatibility_date = "2025-02-01"
+workers_dev = true
+
+[[kv_namespaces]]
+binding = "UPVOTES"
+id = "REPLACE_ME"

@@ -7,6 +7,7 @@
 - 当配置了多语言时，源语言与翻译语言都会写成 `post-title.<lang>.md`。
 - 仅配置单语言时，源语言文件仍写为 `post-title.md`。
 - 翻译结果会缓存在 `.notion_cache.json`，避免重复翻译。
+- 每组语言变体都会写入统一的 `translationKey`（使用 `notion_id`）。
 
 ## 基于 slug 的内容路径
 若 slug 含有 `/`，第一段作为 section 目录，其余部分作为路径。
@@ -84,16 +85,24 @@ sourceLanguage = "zh"
 此流程使用“按文件名翻译”，Hugo 会基于文件名后缀建立多语言关联。
 参考：https://gohugo.io/content-management/multilingual/
 
+## 翻译提示模块
+译文页面会写入以下 front matter 字段：
+
+- `notion_source_language`
+- `notion_translation_language`
+- `notion_source_path`
+- `translationKey`
+
+若导入 `modules/translation`，可在主题模板中渲染统一提示：
+
+```go-html-template
+{{ partial "notion-translation/notice.html" . }}
+```
+
 ## GitHub Actions（可选）
 若使用提供的工作流模板，请设置：
 
 - Secrets：`OPENROUTER_API_KEY`
-
-## 翻译提示
-译文会在顶部插入一段提示，链接回源语言页面。
-
-提示以 HTML `<aside>`（class 为 `notion-translation-note`）输出，可在主题中自定义样式。
-如需调整文案，修改 `scripts/hugo_converter.py` 的 `HugoConverter._build_translation_notice()`。
 
 ## 翻译缓存
 翻译缓存存放在 `.notion_cache.json` 的 `translations` 字段。

@@ -5,6 +5,7 @@
 
 ```text
 .
+├── modules/
 ├── scripts/
 ├── templates/
 ├── docs/
@@ -14,6 +15,7 @@
 
 ## 根目录职责
 - 根目录提供 `notion-autoblog` Python 包
+- `modules/` 保存可复用的 Hugo Modules（目前包含 `translation` 和 `upvote`）
 - `scripts/` 保存同步与转换逻辑
 - `templates/` 保存可复用的 CI/CD 模板
 - `docs/` 保存详细开发文档

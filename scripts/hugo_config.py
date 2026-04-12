@@ -3,14 +3,23 @@ import subprocess
 from typing import Any
 
 
+def read_hugo_config(site_dir: str | None = None) -> dict[str, Any]:
+    """Read the effective Hugo config via the Hugo CLI."""
+    return _read_hugo_config_via_cli(site_dir)
+
+
+def infer_languages_from_config(data: dict[str, Any]) -> list[str]:
+    """Infer Hugo languages from an already loaded config dictionary."""
+    return _infer_languages_from_hugo_dict(data)
+
+
 def infer_languages_from_hugo(site_dir: str | None = None) -> list[str]:
     """Infer Hugo languages.
 
     - languages[0] is the default/source language
     - languages[1:] are translation targets
     """
-    data = _read_hugo_config_via_cli(site_dir)
-    return _infer_languages_from_hugo_dict(data)
+    return infer_languages_from_config(read_hugo_config(site_dir))
 
 
 def _source_language_override(data: dict[str, Any]) -> str:

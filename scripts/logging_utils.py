@@ -102,7 +102,6 @@ def setup_logging(level: Optional[str] = None, use_color: Optional[bool] = None)
     root_logger.addHandler(stream_handler)
 
     # Reduce verbosity of noisy third-party loggers if desired
-    for noisy_logger_name in ("urllib3", "notion_client", "PIL", "httpx", "httpcore"):
+    for noisy_logger_name in ("urllib3", "PIL", "httpx", "httpcore"):
         logging.getLogger(noisy_logger_name).setLevel(max(logging.WARNING, numeric_level))
-
 

@@ -1,0 +1,26 @@
+{{- $sourceLang := .Get "sourceLang" | default (.Page.Params.notion_source_language | default "") -}}
+{{- $sourcePath := .Get "sourcePath" | default (.Page.Params.notion_source_path | default "") -}}
+{{- if not (and $sourceLang $sourcePath) -}}
+{{-   return -}}
+{{- end -}}
+{{- $sourcePage := site.GetPage $sourcePath -}}
+{{- $sourceLabel := $sourceLang -}}
+{{- with $sourcePage -}}
+  {{- with .Language.LanguageName -}}
+    {{- $sourceLabel = . -}}
+  {{- end -}}
+{{- end -}}
+{{- $href := $sourcePath -}}
+{{- with $sourcePage -}}
+  {{- $href = .RelPermalink -}}
+{{- end -}}
+{{- $style := resources.Get "notion-translation/css/notice.css" | minify -}}
+<style>{{- $style.Content | safeCSS -}}</style>
+<aside class="notion-translation-note" role="note">
+  <strong>{{ i18n "notion_translation_note_label" }}</strong>
+  <span>
+    {{ i18n "notion_translation_from_prefix" }}
+    <a href="{{ $href }}">{{ $sourceLabel }}</a>
+    {{ i18n "notion_translation_from_suffix" }}
+  </span>
+</aside>

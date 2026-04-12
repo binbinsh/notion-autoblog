@@ -7,6 +7,7 @@ Thumbs.db
 *.egg-info/
 uv.lock
 .hugo_build.lock
+.env
 node_modules/
 public/
 examples/trainsh-blog/.notion_cache.json
@@ -14,4 +15,5 @@ examples/trainsh-blog/public/
 examples/trainsh-blog/static/images/
 examples/trainsh-blog/static/videos/
 examples/trainsh-blog/static/audios/
+examples/trainsh-blog/static/files/
 examples/trainsh-blog/cloudflare/wrangler.generated.toml
