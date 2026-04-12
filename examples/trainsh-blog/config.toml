@@ -60,6 +60,7 @@ hasCJKLanguage = true
 
 [params]
   author = "Binbin Shen"
+  defaultColorScheme = "light"
   mainSections = ["posts"]
   description = "Personal notes on software, AI, tools, and everyday workflows."
   favicon = "favicon.svg"
