@@ -1,6 +1,7 @@
 {{- $sourceLang := .Get "sourceLang" | default (.Page.Params.notion_source_language | default "") -}}
+{{- $translationLang := .Get "translationLang" | default (.Page.Params.notion_translation_language | default "") -}}
 {{- $sourcePath := .Get "sourcePath" | default (.Page.Params.notion_source_path | default "") -}}
-{{- if not (and $sourceLang $sourcePath) -}}
+{{- if not (and $sourceLang $translationLang $sourcePath) -}}
 {{-   return -}}
 {{- end -}}
 {{- $sourcePage := site.GetPage $sourcePath -}}

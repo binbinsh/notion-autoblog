@@ -128,15 +128,15 @@ class HugoConverter:
         front_matter: Dict[str, Any],
         base_content: str,
         source_lang: Optional[str],
-    ) -> None:
+    ) -> bool:
         if not self.translation_languages or not self.translation_default_language:
-            return
+            return True
         if not self.translation_service:
-            return
+            return True
 
         languages = list(dict.fromkeys(self.translation_languages))
         if len(languages) <= 1:
-            return
+            return True
 
         resolved_source_lang = (source_lang or "").strip()
         if not resolved_source_lang or resolved_source_lang not in languages:
@@ -144,7 +144,9 @@ class HugoConverter:
 
         target_languages = [lang for lang in languages if lang != resolved_source_lang]
         if not target_languages:
-            return
+            return True
+
+        success = True
 
         for target_lang in target_languages:
             translation = self.translation_service.translate(
@@ -154,6 +156,13 @@ class HugoConverter:
                 base_content,
             )
             if not translation:
+                logger.error(
+                    "Failed to generate translation for %s -> %s (%s)",
+                    resolved_source_lang,
+                    target_lang,
+                    front_matter.get("title", ""),
+                )
+                success = False
                 continue
 
             translated_front_matter = dict(front_matter)
@@ -183,6 +192,8 @@ class HugoConverter:
             )
             if file_path and self.cache_manager and post_id:
                 self.cache_manager.record_content_path(post_id, file_path)
+
+        return success
 
     def convert_post(self, post) -> bool:
         """Convert a Notion post into Hugo content files."""
@@ -233,7 +244,7 @@ class HugoConverter:
             if file_path and self.cache_manager and post.id:
                 self.cache_manager.record_content_path(post.id, file_path)
 
-            self._generate_translations(
+            translations_ok = self._generate_translations(
                 post_id=post.id,
                 slug_parts=slug_parts,
                 slug_base=slug_base,
@@ -241,6 +252,9 @@ class HugoConverter:
                 base_content=base_content,
                 source_lang=source_lang,
             )
+            if not translations_ok:
+                logger.error("One or more translations failed for %s", post.title)
+                return False
 
             logger.info("Converted post: %s", post.title)
             return True
