@@ -12,8 +12,8 @@ from hugo_converter import HugoConverter
 from media_handler import MediaHandler
 from logging_utils import setup_logging
 from cache_manager import CacheManager
-from translation_service import CloudflareAITranslator
-from summary_service import CloudflareAISummarizer
+from translation_service import AITranslator
+from summary_service import AISummarizer
 from hugo_config import infer_languages_from_config, read_hugo_config
 
 # Configure logging
@@ -140,12 +140,12 @@ def main():
             if not ai_available:
                 logger.warning("CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID is not set; skipping AI translations")
             else:
-                translator = CloudflareAITranslator(
+                translator = AITranslator(
                     args.cloudflare_api_token,
                     args.cloudflare_account_id,
                     cache_manager=cache_manager,
                 )
-                summarizer = CloudflareAISummarizer(
+                summarizer = AISummarizer(
                     args.cloudflare_api_token,
                     args.cloudflare_account_id,
                     cache_manager=cache_manager,
@@ -153,7 +153,7 @@ def main():
         else:
             logger.info("No Hugo language config found; skipping translations")
             if ai_available:
-                summarizer = CloudflareAISummarizer(
+                summarizer = AISummarizer(
                     args.cloudflare_api_token,
                     args.cloudflare_account_id,
                     cache_manager=cache_manager,

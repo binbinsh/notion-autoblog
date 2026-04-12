@@ -5,9 +5,13 @@ from datetime import datetime
 from typing import Optional
 
 import requests
+import tiktoken
 
 from translation_service import (
     DEFAULT_CLOUDFLARE_AI_MODEL,
+    DEFAULT_CLOUDFLARE_AI_READ_TIMEOUT,
+    _cloudflare_ai_connect_timeout,
+    _cloudflare_ai_read_timeout,
     _log_preview_chars,
     _normalize_language,
     _preview,
@@ -16,16 +20,18 @@ from translation_service import (
 logger = logging.getLogger(__name__)
 
 DEFAULT_CLOUDFLARE_SUMMARY_MODEL = DEFAULT_CLOUDFLARE_AI_MODEL
+DEFAULT_CLOUDFLARE_SUMMARY_MAX_INPUT_CHARS = 4000
+DEFAULT_CLOUDFLARE_SUMMARY_MAX_INPUT_TOKENS = 1200
 
 
-class CloudflareAISummarizer:
+class AISummarizer:
     def __init__(
         self,
         api_token: str,
         account_id: str,
         model: Optional[str] = None,
         cache_manager=None,
-        timeout: int = 60,
+        timeout: int = DEFAULT_CLOUDFLARE_AI_READ_TIMEOUT,
     ):
         self.api_token = api_token
         self.account_id = account_id
@@ -67,7 +73,11 @@ class CloudflareAISummarizer:
             len(content or ""),
         )
 
-        summary = self._call_cloudflare_ai(language=language, title=title, content=content)
+        summary = self._call_cloudflare_ai(
+            language=language,
+            title=title,
+            content=self._prepare_content(content),
+        )
         if not summary:
             return ""
 
@@ -101,6 +111,19 @@ class CloudflareAISummarizer:
             "Content-Type": "application/json",
         }
 
+    def _prepare_content(self, content: str) -> str:
+        text = (content or "").strip()
+        if not text:
+            return ""
+        if len(text) > DEFAULT_CLOUDFLARE_SUMMARY_MAX_INPUT_CHARS:
+            text = text[:DEFAULT_CLOUDFLARE_SUMMARY_MAX_INPUT_CHARS]
+
+        enc = tiktoken.get_encoding("o200k_harmony")
+        tokens = enc.encode(text)
+        if len(tokens) > DEFAULT_CLOUDFLARE_SUMMARY_MAX_INPUT_TOKENS:
+            text = enc.decode(tokens[:DEFAULT_CLOUDFLARE_SUMMARY_MAX_INPUT_TOKENS])
+        return text
+
     def _call_cloudflare_ai(self, *, language: str, title: str, content: str) -> str:
         language_name = _normalize_language(language)
         if not str(language_name).strip():
@@ -130,7 +153,7 @@ class CloudflareAISummarizer:
                 "temperature": 0.2,
             },
             headers=self._build_headers(),
-            timeout=self.timeout,
+            timeout=(_cloudflare_ai_connect_timeout(), self.timeout),
         )
         if response.status_code in (429, 500, 502, 503, 504):
             for attempt in range(2):
@@ -150,7 +173,7 @@ class CloudflareAISummarizer:
                         "temperature": 0.2,
                     },
                     headers=self._build_headers(),
-                    timeout=self.timeout,
+                    timeout=(_cloudflare_ai_connect_timeout(), self.timeout),
                 )
                 if response.status_code not in (429, 500, 502, 503, 504):
                     break

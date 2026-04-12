@@ -23,6 +23,9 @@ DEFAULT_TRANSLATION_MIN_CHUNK_TOKENS = 500  # larger chunks-> worse quality
 DEFAULT_TRANSLATION_MAX_SPLIT_DEPTH = 8
 DEFAULT_TRANSLATION_VERIFICATION_ENABLED = True
 DEFAULT_TRANSLATION_MAX_REWORK_ATTEMPTS = 2
+DEFAULT_CLOUDFLARE_TRANSLATION_MAX_CHUNK_TOKENS = 1200
+DEFAULT_CLOUDFLARE_AI_CONNECT_TIMEOUT = 15
+DEFAULT_CLOUDFLARE_AI_READ_TIMEOUT = 300
 
 # Language detection patterns for various scripts
 # Each pattern detects characters specific to a language/script
@@ -298,6 +301,45 @@ def _cloudflare_ai_max_tokens() -> Optional[int]:
         return None
 
 
+def _cloudflare_translation_max_chunk_tokens() -> int:
+    raw = (os.getenv("CLOUDFLARE_TRANSLATION_MAX_CHUNK_TOKENS") or "").strip()
+    if not raw:
+        return DEFAULT_CLOUDFLARE_TRANSLATION_MAX_CHUNK_TOKENS
+    try:
+        value = int(raw)
+        if value <= 0:
+            return DEFAULT_CLOUDFLARE_TRANSLATION_MAX_CHUNK_TOKENS
+        return min(value, 50_000)
+    except Exception:
+        return DEFAULT_CLOUDFLARE_TRANSLATION_MAX_CHUNK_TOKENS
+
+
+def _cloudflare_ai_connect_timeout() -> int:
+    raw = (os.getenv("CLOUDFLARE_AI_CONNECT_TIMEOUT") or "").strip()
+    if not raw:
+        return DEFAULT_CLOUDFLARE_AI_CONNECT_TIMEOUT
+    try:
+        value = int(raw)
+        if value <= 0:
+            return DEFAULT_CLOUDFLARE_AI_CONNECT_TIMEOUT
+        return min(value, 120)
+    except Exception:
+        return DEFAULT_CLOUDFLARE_AI_CONNECT_TIMEOUT
+
+
+def _cloudflare_ai_read_timeout() -> int:
+    raw = (os.getenv("CLOUDFLARE_AI_READ_TIMEOUT") or "").strip()
+    if not raw:
+        return DEFAULT_CLOUDFLARE_AI_READ_TIMEOUT
+    try:
+        value = int(raw)
+        if value <= 0:
+            return DEFAULT_CLOUDFLARE_AI_READ_TIMEOUT
+        return min(value, 600)
+    except Exception:
+        return DEFAULT_CLOUDFLARE_AI_READ_TIMEOUT
+
+
 def _tiktoken_encoding_name() -> str:
     name = (os.getenv("TIKTOKEN_ENCODING") or DEFAULT_TIKTOKEN_ENCODING).strip()
     return name or DEFAULT_TIKTOKEN_ENCODING
@@ -539,14 +581,14 @@ def _preserve_trailing_newlines(original: str, translated: str) -> str:
     return translated.rstrip("\n") + ("\n" * trailing)
 
 
-class CloudflareAITranslator:
+class AITranslator:
     def __init__(
         self,
         api_token: str,
         account_id: str,
         model: Optional[str] = None,
         cache_manager=None,
-        timeout: int = 60,
+        timeout: int = DEFAULT_CLOUDFLARE_AI_READ_TIMEOUT,
     ):
         self.api_token = api_token
         self.account_id = account_id
@@ -783,7 +825,12 @@ class CloudflareAITranslator:
         start = time.monotonic()
         resp = None
         for attempt in range(3):
-            resp = requests.post(self.api_url, json=body, headers=headers, timeout=self.timeout)
+            resp = requests.post(
+                self.api_url,
+                json=body,
+                headers=headers,
+                timeout=(_cloudflare_ai_connect_timeout(), self.timeout),
+            )
             elapsed = time.monotonic() - start
             logger.info(
                 "Cloudflare AI response: %s (status=%s, elapsed=%.2fs, attempt=%s)",
@@ -792,7 +839,7 @@ class CloudflareAITranslator:
                 elapsed,
                 attempt + 1,
             )
-            if resp.status_code not in (429, 500, 502, 503, 504):
+            if resp.status_code not in (408, 429, 500, 502, 503, 504):
                 break
             if attempt == 2:
                 break
@@ -877,7 +924,10 @@ class CloudflareAITranslator:
         prompt_tokens = _count_tokens(system_prompt)
         content_tokens = _count_tokens(content)
         base_request_tokens = _count_request_tokens(system_prompt, "")
-        chunk_budget = _compute_user_chunk_budget_tokens(system_prompt)
+        chunk_budget = min(
+            _compute_user_chunk_budget_tokens(system_prompt),
+            _cloudflare_translation_max_chunk_tokens(),
+        )
 
         logger.info(
             "Translation planning: %s -> %s (encoding=%s, context_window=%s, prompt_tokens=%s, content_tokens=%s, base_request_tokens=%s, chunk_budget=%s, output_multiplier=%s, output_margin=%s, safety_margin=%s)",
