@@ -4,6 +4,9 @@
 {{- if not (and $sourceLang $translationLang $sourcePath) -}}
 {{-   return -}}
 {{- end -}}
+{{- if eq .Language.Lang $sourceLang -}}
+{{-   return -}}
+{{- end -}}
 {{- if ne .Language.Lang $translationLang -}}
 {{-   return -}}
 {{- end -}}
