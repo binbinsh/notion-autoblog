@@ -53,6 +53,24 @@ class HugoConverterTests(unittest.TestCase):
             self.assertIn("summary: en:Hello", content)
             self.assertIn("translationKey: 12345678-1234-1234-1234-123456789012", content)
 
+    def test_fallback_summary_prefers_intro_paragraphs(self):
+        converter = HugoConverter("/tmp", _FakeMediaHandler())
+        content = (
+            "# Title\n\n"
+            "This opening paragraph sounds like the author's own introduction.\n"
+            "It should stay together in the fallback summary.\n\n"
+            "## Details\n\n"
+            "This second paragraph should not be pulled in when the first paragraph is already long enough."
+        )
+
+        summary = converter._fallback_summary(content)
+
+        self.assertEqual(
+            summary,
+            "This opening paragraph sounds like the author's own introduction. "
+            "It should stay together in the fallback summary.",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

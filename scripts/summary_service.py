@@ -124,13 +124,13 @@ class AISummarizer:
             text = enc.decode(tokens[:DEFAULT_CLOUDFLARE_SUMMARY_MAX_INPUT_TOKENS])
         return text
 
-    def _call_cloudflare_ai(self, *, language: str, title: str, content: str) -> str:
+    def _build_system_prompt(self, language: str) -> str:
         language_name = _normalize_language(language)
         if not str(language_name).strip():
             language_instruction = "Write the summary in the same language as the content.\n"
         else:
             language_instruction = f"Write the summary in {language_name}.\n"
-        system_prompt = (
+        return (
             "You write concise, high-signal blog post summaries.\n"
             f"{language_instruction}"
             "Rules:\n"
@@ -138,9 +138,15 @@ class AISummarizer:
             "- No Markdown, no bullet points, no title prefix.\n"
             "- Prefer 1 or 2 short sentences.\n"
             "- Keep it under 220 characters if possible.\n"
-            "- Focus on the core topic and value of the article.\n"
+            "- Write like the author's own blog blurb or opening note, not a detached abstract.\n"
+            "- Preserve the source tone and level of specificity.\n"
+            "- Lead with the concrete topic, takeaway, or tension.\n"
+            "- Avoid stock openings such as 'This post', 'This article', or 'In this article'.\n"
             "- Ignore boilerplate, navigation, translation notices, and code-only sections."
         )
+
+    def _call_cloudflare_ai(self, *, language: str, title: str, content: str) -> str:
+        system_prompt = self._build_system_prompt(language)
         user_prompt = f"Title:\n{title}\n\nContent:\n{content}"
         response = requests.post(
             self.api_url,

@@ -10,11 +10,11 @@
   {{- end -}}
 {{- end -}}
 
-<article>
-  <h3>
+<article class="post-feed-card">
+  <h3 class="post-feed-title">
     <a href="{{ $page.RelPermalink }}">{{ $page.LinkTitle }}</a>
   </h3>
-  <p>
+  <p class="post-feed-meta">
     <i>
       <time datetime="{{ $page.Date | time.Format "2006-01-02" }}">
         {{ partial "date/format.html" (dict "page" $page "date" $page.Date "context" "list") }}
@@ -23,7 +23,7 @@
   </p>
 
   {{- if and $showSummary $summary -}}
-    <p>{{ $summary | truncate 180 }}</p>
+    <p class="post-feed-summary">{{ $summary | truncate 220 }}</p>
   {{- end -}}
 
   {{- if $showTags -}}

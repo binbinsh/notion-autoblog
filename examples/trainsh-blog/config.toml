@@ -62,6 +62,8 @@ hasCJKLanguage = true
   author = "Binbin Shen"
   mainSections = ["posts"]
   description = "Personal notes on software, AI, tools, and everyday workflows."
+  favicon = "favicon.svg"
+  faviconVersion = "20260413-trainsh"
 
 [params.translate]
   sourceLanguage = "zh"

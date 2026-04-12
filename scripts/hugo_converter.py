@@ -276,31 +276,54 @@ class HugoConverter:
         if not content:
             return ""
 
-        cleaned_lines: List[str] = []
+        paragraphs: List[str] = []
+        current_paragraph: List[str] = []
         in_code_fence = False
         for raw_line in content.splitlines():
             line = raw_line.strip()
             if line.startswith("```"):
                 in_code_fence = not in_code_fence
                 continue
-            if in_code_fence or not line:
+            if in_code_fence:
+                continue
+            if not line:
+                if current_paragraph:
+                    paragraphs.append(" ".join(current_paragraph))
+                    current_paragraph = []
                 continue
             if line.startswith("#") or line.startswith("{{<") or line.startswith("{{%"):
                 continue
             if line.startswith("<aside") or line.startswith("</aside>"):
                 continue
-            cleaned_lines.append(line)
+            current_paragraph.append(line)
 
-        plain = " ".join(cleaned_lines)
+        if current_paragraph:
+            paragraphs.append(" ".join(current_paragraph))
+
+        cleaned_paragraphs = [self._clean_summary_text(paragraph) for paragraph in paragraphs]
+        cleaned_paragraphs = [paragraph for paragraph in cleaned_paragraphs if paragraph]
+        if not cleaned_paragraphs:
+            return ""
+
+        plain = cleaned_paragraphs[0]
+        for paragraph in cleaned_paragraphs[1:]:
+            combined = f"{plain} {paragraph}".strip()
+            if len(plain) >= 90 or len(combined) > 220:
+                break
+            plain = combined
+
+        if len(plain) <= 220:
+            return plain
+        truncated = plain[:217].rsplit(" ", 1)[0].rstrip()
+        return f"{truncated}..."
+
+    def _clean_summary_text(self, text: str) -> str:
+        plain = text or ""
         plain = re.sub(r"!\[([^\]]*)\]\([^)]+\)", r"\1", plain)
         plain = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", plain)
         plain = re.sub(r"`([^`]+)`", r"\1", plain)
         plain = re.sub(r"<[^>]+>", " ", plain)
-        plain = " ".join(plain.split())
-        if len(plain) <= 180:
-            return plain
-        truncated = plain[:177].rsplit(" ", 1)[0].rstrip()
-        return f"{truncated}..."
+        return " ".join(plain.split())
 
     def clean_posts_directory(self):
         """Clean generated Notion posts from the content directory."""
