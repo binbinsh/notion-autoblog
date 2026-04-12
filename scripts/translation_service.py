@@ -12,9 +12,7 @@ import tiktoken
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_OPENROUTER_MODEL = "google/gemma-4-31b-it:free"
-DEFAULT_OPENROUTER_SITE_URL = "https://github.com/binbinsh/notion-autoblog"
-DEFAULT_OPENROUTER_APP_NAME = "notion-autoblog"
+DEFAULT_CLOUDFLARE_AI_MODEL = "@cf/moonshotai/kimi-k2.5"
 DEFAULT_LOG_PREVIEW_CHARS = 160
 DEFAULT_CONTEXT_WINDOW_SIZE = 131_072
 DEFAULT_TIKTOKEN_ENCODING = "o200k_harmony"
@@ -198,7 +196,7 @@ def _log_preview_chars() -> int:
 def _context_window_size_tokens() -> int:
     """Read model context window size (tokens) from env var.
 
-    This is a model limit (not an OpenRouter limit) and is used to plan chunk sizes
+    This is a model limit (not a provider limit) and is used to plan chunk sizes
     before calling the model.
     """
     raw = (os.getenv("CONTEXT_WINDOW_SIZE") or "").strip()
@@ -283,12 +281,12 @@ def _translation_max_split_depth() -> int:
         return DEFAULT_TRANSLATION_MAX_SPLIT_DEPTH
 
 
-def _openrouter_max_tokens() -> Optional[int]:
-    """Read max_tokens from env var for OpenRouter requests.
+def _cloudflare_ai_max_tokens() -> Optional[int]:
+    """Read max_tokens from env var for Cloudflare AI requests.
 
     If unset/invalid, returns None and lets the provider decide.
     """
-    raw = (os.getenv("OPENROUTER_MAX_TOKENS") or "").strip()
+    raw = (os.getenv("CLOUDFLARE_AI_MAX_TOKENS") or "").strip()
     if not raw:
         return None
     try:
@@ -541,25 +539,23 @@ def _preserve_trailing_newlines(original: str, translated: str) -> str:
     return translated.rstrip("\n") + ("\n" * trailing)
 
 
-class OpenRouterTranslator:
+class CloudflareAITranslator:
     def __init__(
         self,
-        api_key: str,
+        api_token: str,
+        account_id: str,
         model: Optional[str] = None,
         cache_manager=None,
-        site_url: Optional[str] = DEFAULT_OPENROUTER_SITE_URL,
-        app_name: Optional[str] = DEFAULT_OPENROUTER_APP_NAME,
         timeout: int = 60,
     ):
-        self.api_key = api_key
-        self.model = (model or os.getenv("OPENROUTER_TRANSLATION_MODEL") or DEFAULT_OPENROUTER_MODEL).strip()
+        self.api_token = api_token
+        self.account_id = account_id
+        self.model = (model or os.getenv("CLOUDFLARE_TRANSLATION_MODEL") or DEFAULT_CLOUDFLARE_AI_MODEL).strip()
         self.cache_manager = cache_manager
-        self.site_url = site_url
-        self.app_name = app_name
         self.timeout = timeout
-        self.api_url = "https://openrouter.ai/api/v1/chat/completions"
+        self.api_url = f"https://api.cloudflare.com/client/v4/accounts/{self.account_id}/ai/v1/chat/completions"
         logger.info(
-            "OpenRouter translator enabled (model=%s, timeout=%ss, cache=%s)",
+            "Cloudflare AI translator enabled (model=%s, timeout=%ss, cache=%s)",
             self.model,
             self.timeout,
             "on" if bool(self.cache_manager) else "off",
@@ -737,17 +733,12 @@ class OpenRouterTranslator:
         return hashlib.sha256(key.encode("utf-8")).hexdigest()
 
     def _build_headers(self) -> dict[str, str]:
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
+        return {
+            "Authorization": f"Bearer {self.api_token}",
             "Content-Type": "application/json",
         }
-        if self.site_url:
-            headers["HTTP-Referer"] = self.site_url
-        if self.app_name:
-            headers["X-Title"] = self.app_name
-        return headers
 
-    def _call_openrouter(
+    def _call_cloudflare_ai(
         self,
         *,
         headers: dict[str, str],
@@ -760,11 +751,8 @@ class OpenRouterTranslator:
         force_max_tokens: bool = False,
     ) -> tuple[str, str, dict]:
         preview_chars = _log_preview_chars()
-        configured_max_tokens = _openrouter_max_tokens()
+        configured_max_tokens = _cloudflare_ai_max_tokens()
         if configured_max_tokens is None:
-            # Only set max_tokens when explicitly configured. Different models/providers
-            # have different completion limits; relying on the provider default avoids
-            # sending an invalid max_tokens value.
             if not force_max_tokens:
                 max_tokens = None
         else:
@@ -785,7 +773,7 @@ class OpenRouterTranslator:
         if stop:
             body["stop"] = stop
         logger.info(
-            "OpenRouter request: %s (model=%s, max_tokens=%s, user_chars=%s, user_preview=%r)",
+            "Cloudflare AI request: %s (model=%s, max_tokens=%s, user_chars=%s, user_preview=%r)",
             request_label,
             self.model,
             max_tokens if max_tokens is not None else "default",
@@ -793,28 +781,41 @@ class OpenRouterTranslator:
             _preview(user_prompt, min(preview_chars, 200)),
         )
         start = time.monotonic()
-        resp = requests.post(self.api_url, json=body, headers=headers, timeout=self.timeout)
-        elapsed = time.monotonic() - start
-        logger.info("OpenRouter response: %s (status=%s, elapsed=%.2fs)", request_label, resp.status_code, elapsed)
+        resp = None
+        for attempt in range(3):
+            resp = requests.post(self.api_url, json=body, headers=headers, timeout=self.timeout)
+            elapsed = time.monotonic() - start
+            logger.info(
+                "Cloudflare AI response: %s (status=%s, elapsed=%.2fs, attempt=%s)",
+                request_label,
+                resp.status_code,
+                elapsed,
+                attempt + 1,
+            )
+            if resp.status_code not in (429, 500, 502, 503, 504):
+                break
+            if attempt == 2:
+                break
+            time.sleep(1.5 * (attempt + 1))
         resp.raise_for_status()
         data = resp.json()
-        if data.get("error"):
-            raise RuntimeError(str(data["error"]))
+        if data.get("errors"):
+            raise RuntimeError(str(data["errors"]))
         choice = (data.get("choices") or [{}])[0] or {}
         finish_reason = (choice.get("finish_reason") or "").strip()
         usage = data.get("usage") or {}
         logger.info(
-            "OpenRouter meta: %s (finish_reason=%s, usage=%s)",
+            "Cloudflare AI meta: %s (finish_reason=%s, usage=%s)",
             request_label,
             finish_reason or "unknown",
             usage,
         )
         if finish_reason == "length":
-            logger.warning("OpenRouter completion appears truncated (finish_reason=length): %s", request_label)
+            logger.warning("Cloudflare AI completion appears truncated (finish_reason=length): %s", request_label)
 
         content = choice.get("message", {}).get("content", "") or ""
         logger.info(
-            "OpenRouter completion: %s (chars=%s, preview=%r)",
+            "Cloudflare AI completion: %s (chars=%s, preview=%r)",
             request_label,
             len(content),
             _preview(content, min(preview_chars, 200)),
@@ -828,11 +829,10 @@ class OpenRouterTranslator:
             "Return ONLY the translated title as plain text, in a single line. "
             "No quotes, no Markdown, no code fences, no prefixes."
         )
-        raw, finish_reason, _usage = self._call_openrouter(
+        raw, finish_reason, _usage = self._call_cloudflare_ai(
             headers=headers,
             system_prompt=system_prompt,
             user_prompt=title,
-            stop=["\n"],
             request_label=f"title {source_lang}->{target_lang}",
         )
         raw = (raw or "").strip()
@@ -1114,7 +1114,7 @@ class OpenRouterTranslator:
                 )
                 return ""
 
-            raw, finish_reason, _usage = self._call_openrouter(
+            raw, finish_reason, _usage = self._call_cloudflare_ai(
                 headers=headers,
                 system_prompt=system_prompt,
                 user_prompt=chunk,
@@ -1227,7 +1227,7 @@ class OpenRouterTranslator:
         )
 
         try:
-            response, _, _ = self._call_openrouter(
+            response, _, _ = self._call_cloudflare_ai(
                 headers=headers,
                 system_prompt="You are a translation quality verification assistant. Be strict but fair.",
                 user_prompt=verification_prompt,
@@ -1285,7 +1285,7 @@ class OpenRouterTranslator:
         )
 
         try:
-            response, finish_reason, _ = self._call_openrouter(
+            response, finish_reason, _ = self._call_cloudflare_ai(
                 headers=headers,
                 system_prompt=system_prompt,
                 user_prompt=rework_prompt,

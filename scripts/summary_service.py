@@ -7,8 +7,7 @@ from typing import Optional
 import requests
 
 from translation_service import (
-    DEFAULT_OPENROUTER_APP_NAME,
-    DEFAULT_OPENROUTER_SITE_URL,
+    DEFAULT_CLOUDFLARE_AI_MODEL,
     _log_preview_chars,
     _normalize_language,
     _preview,
@@ -16,28 +15,26 @@ from translation_service import (
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_OPENROUTER_SUMMARY_MODEL = "google/gemma-4-31b-it:free"
+DEFAULT_CLOUDFLARE_SUMMARY_MODEL = DEFAULT_CLOUDFLARE_AI_MODEL
 
 
-class OpenRouterSummarizer:
+class CloudflareAISummarizer:
     def __init__(
         self,
-        api_key: str,
+        api_token: str,
+        account_id: str,
         model: Optional[str] = None,
         cache_manager=None,
-        site_url: Optional[str] = DEFAULT_OPENROUTER_SITE_URL,
-        app_name: Optional[str] = DEFAULT_OPENROUTER_APP_NAME,
         timeout: int = 60,
     ):
-        self.api_key = api_key
-        self.model = (model or os.getenv("OPENROUTER_SUMMARY_MODEL") or DEFAULT_OPENROUTER_SUMMARY_MODEL).strip()
+        self.api_token = api_token
+        self.account_id = account_id
+        self.model = (model or os.getenv("CLOUDFLARE_SUMMARY_MODEL") or DEFAULT_CLOUDFLARE_SUMMARY_MODEL).strip()
         self.cache_manager = cache_manager
-        self.site_url = site_url
-        self.app_name = app_name
         self.timeout = timeout
-        self.api_url = "https://openrouter.ai/api/v1/chat/completions"
+        self.api_url = f"https://api.cloudflare.com/client/v4/accounts/{self.account_id}/ai/v1/chat/completions"
         logger.info(
-            "OpenRouter summarizer enabled (model=%s, timeout=%ss, cache=%s)",
+            "Cloudflare AI summarizer enabled (model=%s, timeout=%ss, cache=%s)",
             self.model,
             self.timeout,
             "on" if bool(self.cache_manager) else "off",
@@ -70,7 +67,7 @@ class OpenRouterSummarizer:
             len(content or ""),
         )
 
-        summary = self._call_openrouter(language=language, title=title, content=content)
+        summary = self._call_cloudflare_ai(language=language, title=title, content=content)
         if not summary:
             return ""
 
@@ -99,17 +96,12 @@ class OpenRouterSummarizer:
         return hashlib.sha256(f"{self.model}:{digest}".encode("utf-8")).hexdigest()
 
     def _build_headers(self) -> dict[str, str]:
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
+        return {
+            "Authorization": f"Bearer {self.api_token}",
             "Content-Type": "application/json",
         }
-        if self.site_url:
-            headers["HTTP-Referer"] = self.site_url
-        if self.app_name:
-            headers["X-Title"] = self.app_name
-        return headers
 
-    def _call_openrouter(self, *, language: str, title: str, content: str) -> str:
+    def _call_cloudflare_ai(self, *, language: str, title: str, content: str) -> str:
         language_name = _normalize_language(language)
         if not str(language_name).strip():
             language_instruction = "Write the summary in the same language as the content.\n"
@@ -140,10 +132,32 @@ class OpenRouterSummarizer:
             headers=self._build_headers(),
             timeout=self.timeout,
         )
+        if response.status_code in (429, 500, 502, 503, 504):
+            for attempt in range(2):
+                logger.warning(
+                    "Cloudflare AI summary request retrying after status=%s (attempt=%s)",
+                    response.status_code,
+                    attempt + 2,
+                )
+                response = requests.post(
+                    self.api_url,
+                    json={
+                        "model": self.model,
+                        "messages": [
+                            {"role": "system", "content": system_prompt},
+                            {"role": "user", "content": user_prompt},
+                        ],
+                        "temperature": 0.2,
+                    },
+                    headers=self._build_headers(),
+                    timeout=self.timeout,
+                )
+                if response.status_code not in (429, 500, 502, 503, 504):
+                    break
         response.raise_for_status()
         data = response.json()
-        if data.get("error"):
-            raise RuntimeError(str(data["error"]))
+        if data.get("errors"):
+            raise RuntimeError(str(data["errors"]))
 
         text = ((data.get("choices") or [{}])[0] or {}).get("message", {}).get("content", "") or ""
         summary = " ".join(text.strip().split())

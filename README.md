@@ -65,9 +65,10 @@ Required:
 
 Optional:
 
-- `OPENROUTER_API_KEY` to enable automatic translation
-- `OPENROUTER_TRANSLATION_MODEL` to override the translation model
-- `OPENROUTER_SUMMARY_MODEL` to override the summary model
+- `CLOUDFLARE_API_TOKEN` for Workers AI
+- `CLOUDFLARE_ACCOUNT_ID` for Workers AI
+- `CLOUDFLARE_TRANSLATION_MODEL` to override the translation model
+- `CLOUDFLARE_SUMMARY_MODEL` to override the summary model
 - `HUGO_SITE_DIR` to override the Hugo site root
 - `HUGO_CONTENT_DIR` to override the content output directory
 - `HUGO_STATIC_DIR` to override the static asset output directory
@@ -105,17 +106,17 @@ The bundled Hugo modules add these shortcodes:
 - `{{< translation-note >}}`
 - `{{< upvote >}}`
 
-## Default AI Models
+## Default AI Model
 
-As of April 12, 2026, the repository defaults to these OpenRouter free models:
+As of April 12, 2026, the repository defaults to this Cloudflare Workers AI model:
 
-- Translation: `google/gemma-4-31b-it:free`
-- Summary: `google/gemma-4-31b-it:free`
+- Translation: `@cf/moonshotai/kimi-k2.5`
+- Summary: `@cf/moonshotai/kimi-k2.5`
 
-These defaults were selected from the current OpenRouter free model list for recent release date and general text quality:
+Reference:
 
-- [OpenRouter Models API](https://openrouter.ai/api/v1/models)
-- [Gemma 4 31B (free)](https://openrouter.ai/google/gemma-4-31b-it:free)
+- [Cloudflare Workers AI - Kimi K2.5](https://developers.cloudflare.com/workers-ai/models/kimi-k2.5/)
+- [Cloudflare Workers AI - OpenAI compatibility](https://developers.cloudflare.com/workers-ai/configuration/open-ai-compatibility/)
 
 ## Documentation
 

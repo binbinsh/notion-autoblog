@@ -9,9 +9,6 @@
 #   - CLOUDFLARE_API_TOKEN
 #   - CLOUDFLARE_ACCOUNT_ID
 #   - CLOUDFLARE_ZONE_ID
-# - Optional GitHub Secrets:
-#   - OPENROUTER_API_KEY (enables auto-translation)
-
 name: Deploy (Cloudflare Worker)
 
 concurrency:
@@ -100,7 +97,8 @@ jobs:
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: uv run notion-autoblog --site-dir "$SITE_DIR"
 
       - name: Build Hugo site

@@ -2,7 +2,7 @@
 
 ## Overview
 
-`notion-autoblog` can generate Hugo multilingual content using Hugo's "translation by filename" convention and can optionally translate content through OpenRouter.
+`notion-autoblog` can generate Hugo multilingual content using Hugo's "translation by filename" convention and can optionally translate content through Cloudflare Workers AI.
 
 - Source and target languages are inferred from Hugo configuration
 - In multilingual mode, both the source file and translated files use language suffixes such as `post-title.en.md` and `post-title.zh.md`
@@ -40,9 +40,10 @@ Recommendations:
 
 Configure these values through environment variables such as `.env`:
 
-- `OPENROUTER_API_KEY` for OpenRouter translation
+- `CLOUDFLARE_API_TOKEN` for Workers AI
+- `CLOUDFLARE_ACCOUNT_ID` for Workers AI
 
-If the key is missing, the sync still writes the source-language files and skips translation.
+If they are missing, the sync still writes the source-language files and skips AI translation.
 
 Language targets come from Hugo config:
 
@@ -54,13 +55,13 @@ The sync translates into every configured language except the resolved source la
 
 ## Summary Generation
 
-If `OPENROUTER_API_KEY` is configured, the sync can also generate a short plain-text summary for each output page and store it in front matter as `summary`.
+If Workers AI is configured, the sync can also generate a short plain-text summary for each output page and store it in front matter as `summary`.
 
 - source-language pages get their own summary
 - translated pages get a summary in the target language
 - if summary generation is unavailable, the sync falls back to a deterministic excerpt
 
-The default summary model is `google/gemma-4-31b-it:free`.
+The default summary model is `@cf/moonshotai/kimi-k2.5`.
 
 ## Hugo Configuration Example
 

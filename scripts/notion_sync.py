@@ -12,8 +12,8 @@ from hugo_converter import HugoConverter
 from media_handler import MediaHandler
 from logging_utils import setup_logging
 from cache_manager import CacheManager
-from translation_service import OpenRouterTranslator
-from summary_service import OpenRouterSummarizer
+from translation_service import CloudflareAITranslator
+from summary_service import CloudflareAISummarizer
 from hugo_config import infer_languages_from_config, read_hugo_config
 
 # Configure logging
@@ -84,8 +84,10 @@ def main():
                         help='Cache file path')
     parser.add_argument('--clean', action='store_true',
                         help='Clean existing posts before sync')
-    parser.add_argument('--openrouter-api-key', default=os.getenv('OPENROUTER_API_KEY'),
-                        help='OpenRouter API key for translations and summaries')
+    parser.add_argument('--cloudflare-api-token', default=os.getenv('CLOUDFLARE_API_TOKEN'),
+                        help='Cloudflare API token for Workers AI and deployment')
+    parser.add_argument('--cloudflare-account-id', default=os.getenv('CLOUDFLARE_ACCOUNT_ID'),
+                        help='Cloudflare account id for Workers AI')
 
     args = parser.parse_args()
 
@@ -133,23 +135,27 @@ def main():
 
         translator = None
         summarizer = None
+        ai_available = bool(args.cloudflare_api_token and args.cloudflare_account_id)
         if languages:
-            if not args.openrouter_api_key:
-                logger.warning("OPENROUTER_API_KEY is not set; skipping translations")
+            if not ai_available:
+                logger.warning("CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID is not set; skipping AI translations")
             else:
-                translator = OpenRouterTranslator(
-                    args.openrouter_api_key,
+                translator = CloudflareAITranslator(
+                    args.cloudflare_api_token,
+                    args.cloudflare_account_id,
                     cache_manager=cache_manager,
                 )
-                summarizer = OpenRouterSummarizer(
-                    args.openrouter_api_key,
+                summarizer = CloudflareAISummarizer(
+                    args.cloudflare_api_token,
+                    args.cloudflare_account_id,
                     cache_manager=cache_manager,
                 )
         else:
             logger.info("No Hugo language config found; skipping translations")
-            if args.openrouter_api_key:
-                summarizer = OpenRouterSummarizer(
-                    args.openrouter_api_key,
+            if ai_available:
+                summarizer = CloudflareAISummarizer(
+                    args.cloudflare_api_token,
+                    args.cloudflare_account_id,
                     cache_manager=cache_manager,
                 )
 
