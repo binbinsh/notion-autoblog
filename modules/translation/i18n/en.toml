@@ -1,8 +1,8 @@
-[notion_translation_note_label]
+[translation_note_label]
 other = "Note:"
 
-[notion_translation_from_prefix]
+[translation_from_prefix]
 other = "Machine-translated from the"
 
-[notion_translation_from_suffix]
+[translation_from_suffix]
 other = "original."

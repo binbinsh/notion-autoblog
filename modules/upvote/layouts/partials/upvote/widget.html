@@ -27,22 +27,22 @@
 {{- $endpoint := or $params.endpoint "/api/upvote" -}}
 {{- $info := or $params.infoEndpoint "/api/upvote-info" -}}
 {{- $idSafe := md5 $slug -}}
-{{- $formId := printf "notion-upvote-form-%s" $idSafe -}}
-{{- $style := resources.Get "notion-upvote/css/widget.css" | minify -}}
-{{- $script := resources.Get "notion-upvote/js/widget.js" | minify -}}
+{{- $formId := printf "upvote-form-%s" $idSafe -}}
+{{- $style := resources.Get "upvote/css/widget.css" | minify -}}
+{{- $script := resources.Get "upvote/js/widget.js" | minify -}}
 <style>{{- $style.Content | safeCSS -}}</style>
-<div class="notion-upvote-widget" data-notion-upvote data-slug="{{ $slug }}" data-endpoint="{{ $endpoint }}" data-info-endpoint="{{ $info }}" data-hint="{{ i18n "notion_upvote_hint" }}" data-upvoted-title="{{ i18n "notion_upvoted_title" }}">
+<div class="upvote-widget" data-upvote data-slug="{{ $slug }}" data-endpoint="{{ $endpoint }}" data-info-endpoint="{{ $info }}" data-hint="{{ i18n "upvote_hint" }}" data-upvoted-title="{{ i18n "upvoted_title" }}">
   <form id="{{ $formId }}" action="{{ $endpoint }}" method="post" style="display: inline">
     <input hidden name="slug" value="{{ $slug }}">
     <input hidden name="title" value="{{ .Title }}">
     <input hidden name="permalink" value="{{ .RelPermalink }}">
     <input hidden name="dateISO" value="{{ .Date.Format "2006-01-02" }}">
-    <button class="notion-upvote-button" type="submit" title="{{ i18n "notion_upvote_title" }}" aria-label="{{ i18n "notion_upvote_count" }}">
+    <button class="upvote-button" type="submit" title="{{ i18n "upvote_title" }}" aria-label="{{ i18n "upvote_count" }}">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <polyline points="17 11 12 6 7 11"></polyline>
         <polyline points="17 18 12 13 7 18"></polyline>
       </svg>
-      <small class="notion-upvote-count">&nbsp;</small>
+      <small class="upvote-count">&nbsp;</small>
     </button>
   </form>
 </div>

@@ -1,11 +1,11 @@
-[notion_upvote_hint]
+[upvote_hint]
 other = "Click to upvote"
 
-[notion_upvote_title]
+[upvote_title]
 other = "Toast this post"
 
-[notion_upvote_count]
+[upvote_count]
 other = "Upvote count"
 
-[notion_upvoted_title]
+[upvoted_title]
 other = "Toasted"

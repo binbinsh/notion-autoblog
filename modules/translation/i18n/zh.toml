@@ -1,8 +1,8 @@
-[notion_translation_note_label]
+[translation_note_label]
 other = "说明："
 
-[notion_translation_from_prefix]
+[translation_from_prefix]
 other = "本文由机器从"
 
-[notion_translation_from_suffix]
+[translation_from_suffix]
 other = "原文翻译而来。"

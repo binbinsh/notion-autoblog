@@ -1,5 +1,5 @@
 (() => {
-  const containers = Array.from(document.querySelectorAll('[data-notion-upvote]'));
+  const containers = Array.from(document.querySelectorAll('[data-upvote]'));
   if (!containers.length) return;
 
   const hasMoved = { value: false };
@@ -14,8 +14,8 @@
     const infoEndpoint = container.getAttribute('data-info-endpoint');
     const upvotedTitle = container.getAttribute('data-upvoted-title') || '';
     const form = container.querySelector('form');
-    const button = container.querySelector('.notion-upvote-button');
-    const countEl = container.querySelector('.notion-upvote-count');
+    const button = container.querySelector('.upvote-button');
+    const countEl = container.querySelector('.upvote-count');
     if (!slug || !endpoint || !infoEndpoint || !form || !button || !countEl) {
       return;
     }
@@ -35,7 +35,7 @@
       }
       if (upvoted) {
         button.disabled = true;
-        button.classList.add('notion-upvote-button--active');
+        button.classList.add('upvote-button--active');
         if (upvotedTitle) button.title = upvotedTitle;
       }
     };

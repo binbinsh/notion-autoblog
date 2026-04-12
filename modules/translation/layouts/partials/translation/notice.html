@@ -1,5 +1,5 @@
-{{- $sourceLang := .Get "sourceLang" | default (.Page.Params.notion_source_language | default "") -}}
-{{- $sourcePath := .Get "sourcePath" | default (.Page.Params.notion_source_path | default "") -}}
+{{- $sourceLang := .Params.notion_source_language | default "" -}}
+{{- $sourcePath := .Params.notion_source_path | default "" -}}
 {{- if not (and $sourceLang $sourcePath) -}}
 {{-   return -}}
 {{- end -}}
@@ -14,13 +14,13 @@
 {{- with $sourcePage -}}
   {{- $href = .RelPermalink -}}
 {{- end -}}
-{{- $style := resources.Get "notion-translation/css/notice.css" | minify -}}
+{{- $style := resources.Get "translation/css/notice.css" | minify -}}
 <style>{{- $style.Content | safeCSS -}}</style>
-<aside class="notion-translation-note" role="note">
-  <strong>{{ i18n "notion_translation_note_label" }}</strong>
+<aside class="translation-note" role="note">
+  <strong>{{ i18n "translation_note_label" }}</strong>
   <span>
-    {{ i18n "notion_translation_from_prefix" }}
+    {{ i18n "translation_from_prefix" }}
     <a href="{{ $href }}">{{ $sourceLabel }}</a>
-    {{ i18n "notion_translation_from_suffix" }}
+    {{ i18n "translation_from_suffix" }}
   </span>
 </aside>

@@ -1,4 +1,4 @@
-.notion-translation-note {
+.translation-note {
   margin: 1rem 0;
   padding: 0.75rem 1rem;
   border: 1px solid rgba(59, 130, 246, 0.25);
@@ -8,6 +8,6 @@
   font-style: normal;
 }
 
-.notion-translation-note strong {
+.translation-note strong {
   margin-right: 0.35rem;
 }
