@@ -1,6 +1,6 @@
-baseURL = 'https://train.sh/'
+baseURL = 'https://blog.train.sh/'
 languageCode = 'en-US'
-title = 'Welcome to train.sh'
+title = 'TrainShell Blog'
 theme = 'hugo-trainsh'
 
 # Build settings
@@ -53,7 +53,7 @@ hasCJKLanguage = true
   author = "Binbin Shen"
   # Notion slugs currently generate content under /blog/... in CI, so only "blog" is treated as the primary section.
   mainSections = ["blog"]
-  description = "Doppio is a double-shot helper for everyday coding workflows."
+  description = "Personal notes on software, AI, tools, and everyday workflows."
 
 [params.translate]
   sourceLanguage = "zh"
@@ -64,13 +64,14 @@ hasCJKLanguage = true
   infoEndpoint = "/api/upvote-info"
 
 [params.social]
-  email = "hello@train.sh"
+  email = "shenbinbin@train.sh"
 
 [params.home]
-  intro = """Building Doppio☕️☕️ — a double-shot helper for everyday coding workflows."""
+  intro = """Personal notes on software, AI, tools, and everyday workflows."""
 
-[params.home.recent]
-  limit = 5
+[params.home.feed]
+  enabled = true
+  pageSize = 5
 
 [outputs]
   home = ["HTML", "RSS", "JSON"]

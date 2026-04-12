@@ -1,4 +1,4 @@
-# Deploy train.sh (Notion -> Hugo -> Cloudflare Worker)
+# Deploy blog.train.sh (Notion -> Hugo -> Cloudflare Worker)
 #
 # Notes:
 # - This workflow syncs content from Notion via notion-hugo-deploy, builds the Hugo site,
@@ -113,7 +113,7 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          KV_NAMESPACE_TITLE: trainsh-home-UPVOTES
+          KV_NAMESPACE_TITLE: trainsh-blog-UPVOTES
         run: |
           set -euo pipefail
 
@@ -129,7 +129,7 @@ jobs:
 
           api="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/storage/kv/namespaces"
           auth=(-H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json")
-          title="${KV_NAMESPACE_TITLE:-trainsh-home-UPVOTES}"
+          title="${KV_NAMESPACE_TITLE:-trainsh-blog-UPVOTES}"
 
           existing="$(curl -sS "${auth[@]}" "$api?per_page=1000" | jq -r --arg title "$title" '.result[] | select(.title == $title) | .id' | head -n1 || true)"
 

@@ -1,11 +1,11 @@
-name = "trainsh-home"
+name = "trainsh-blog"
 main = "../themes/hugo-trainsh/cloudflare/worker.py"
 compatibility_date = "2025-12-09"
 compatibility_flags = ["python_workers"]
 workers_dev = true
 
 routes = [
-  { pattern = "train.sh/*", zone_id = "${CLOUDFLARE_ZONE_ID}" },
+  { pattern = "blog.train.sh/*", zone_id = "${CLOUDFLARE_ZONE_ID}" },
 ]
 
 [assets]
