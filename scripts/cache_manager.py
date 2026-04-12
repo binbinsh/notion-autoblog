@@ -53,14 +53,6 @@ class CacheManager:
             f"Saved cache to {self.cache_file}: posts={len(self.cache_data.get('posts', {}))}, media={len(self.cache_data.get('media', {}))}"
         )
 
-    def should_update_post(self, post_id: str, last_edited: datetime) -> bool:
-        """Check whether a post needs updating"""
-        if post_id not in self.cache_data["posts"]:
-            return True
-
-        cached_time = datetime.fromisoformat(self.cache_data["posts"][post_id])
-        return last_edited > cached_time
-
     def update_post_cache(self, post_id: str, last_edited: datetime):
         """Update post cache"""
         self.cache_data["posts"][post_id] = last_edited.isoformat()
@@ -130,16 +122,6 @@ class CacheManager:
         """Update last sync time"""
         self.cache_data["last_sync"] = datetime.now().isoformat()
         logging.getLogger(__name__).debug(f"Updated last_sync -> {self.cache_data['last_sync']}")
-
-    def get_last_sync(self) -> Optional[datetime]:
-        """Get last sync time as datetime if present"""
-        value = self.cache_data.get("last_sync")
-        if not value:
-            return None
-        try:
-            return datetime.fromisoformat(value)
-        except Exception:
-            return None
 
     def normalize_media_key(self, url: str) -> str:
         """Return a stable key for media URLs.
