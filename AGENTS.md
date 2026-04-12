@@ -1,4 +1,4 @@
-# Instructions for train.sh
+# notion-autoblog
 
 ## General Instructions
 - Always `use context7` for the most recent docs and best practices.
@@ -10,3 +10,6 @@
     2. Wrap Error: `sg run -p 'return $E' -r 'return wrap($E)'`
     3. API Update: `sg run -p 'user.id' -r 'user.get_id()'`
 - No legacy code, no backward compatibility.
+
+## Python Instructions
+- Always use `uv` for python package manager. The `.venv` is located in the project root.

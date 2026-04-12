@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "notion-autoblog"
+version = "0.3.1"
+description = "Sync Notion databases into Hugo content with media handling and deployment templates"
+readme = "README.md"
+authors = [{ name = "BINBIN SHEN" }]
+license = { text = "Apache-2.0" }
+requires-python = ">=3.10"
+dependencies = [
+  "notion-client",
+  "requests",
+  "python-dotenv",
+  "pyyaml",
+  "Pillow",
+  "beautifulsoup4",
+  "tqdm",
+  "hugo",
+  "tiktoken",
+]
+
+[project.scripts]
+notion-autoblog = "notion_sync:main"
+
+[tool.setuptools]
+package-dir = {"" = "scripts"}
+py-modules = [
+  "notion_sync",
+  "notion_service",
+  "hugo_config",
+  "hugo_converter",
+  "media_handler",
+  "logging_utils",
+  "cache_manager",
+  "retry_decorator",
+  "concurrent_downloader",
+  "translation_service",
+]

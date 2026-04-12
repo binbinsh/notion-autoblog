@@ -1,6 +1,3 @@
-[submodule "notion-hugo-deploy"]
-	path = notion-hugo-deploy
-	url = https://github.com/binbinsh/notion-hugo-deploy
 [submodule "themes/hugo-trainsh"]
-	path = themes/hugo-trainsh
+	path = examples/trainsh-blog/themes/hugo-trainsh
 	url = https://github.com/binbinsh/hugo-trainsh.git

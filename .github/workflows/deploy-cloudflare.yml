@@ -1,8 +1,8 @@
-# Deploy blog.train.sh (Notion -> Hugo -> Cloudflare Worker)
+# Deploy blog.train.sh from the trainsh-blog example
 #
 # Notes:
-# - This workflow syncs content from Notion via notion-hugo-deploy, builds the Hugo site,
-#   then deploys a Cloudflare Worker that serves both static assets and the /api/* endpoints.
+# - This workflow installs notion-autoblog from the repository root, syncs the example site,
+#   builds it, then deploys a Cloudflare Worker that serves both static assets and the /api/* endpoints.
 # - Required GitHub Secrets:
 #   - NOTION_TOKEN
 #   - NOTION_DATABASE_ID
@@ -30,6 +30,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      SITE_DIR: examples/trainsh-blog
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -53,8 +55,8 @@ jobs:
       - name: Create virtual environment
         run: uv venv --python 3.11
 
-      - name: Install notion-hugo-deploy
-        run: uv pip install notion-hugo-deploy/
+      - name: Install notion-autoblog
+        run: uv pip install .
 
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v2
@@ -68,10 +70,10 @@ jobs:
         id: site-cache
         with:
           path: |
-            .notion_cache.json
-            static/images
-            static/videos
-            static/audios
+            ${{ env.SITE_DIR }}/.notion_cache.json
+            ${{ env.SITE_DIR }}/static/images
+            ${{ env.SITE_DIR }}/static/videos
+            ${{ env.SITE_DIR }}/static/audios
           # Use a fixed cache key so the same cache entry is reused across runs.
           key: site-${{ github.ref_name }}-media-v1
           restore-keys: |
@@ -85,35 +87,35 @@ jobs:
       - name: Fix cached file ownership
         if: steps.site-cache.outputs.cache-hit == 'true'
         run: |
-          if [ -f .notion_cache.json ]; then sudo chown "$(whoami)" .notion_cache.json; fi
-          if [ -d static ]; then sudo chown -R "$(whoami)" static; fi
+          if [ -f "$SITE_DIR/.notion_cache.json" ]; then sudo chown "$(whoami)" "$SITE_DIR/.notion_cache.json"; fi
+          if [ -d "$SITE_DIR/static" ]; then sudo chown -R "$(whoami)" "$SITE_DIR/static"; fi
 
       - name: Sync posts from Notion
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-        run: uv run notion-hugo-deploy/scripts/notion_sync.py
+        run: uv run notion-autoblog --site-dir "$SITE_DIR"
 
       - name: Build Hugo site
-        run: hugo --minify --cleanDestinationDir
+        run: hugo --source "$SITE_DIR" --minify --cleanDestinationDir
 
       - name: Save site cache (media and state)
         if: always() && steps.site-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: |
-            .notion_cache.json
-            static/images
-            static/videos
-            static/audios
+            ${{ env.SITE_DIR }}/.notion_cache.json
+            ${{ env.SITE_DIR }}/static/images
+            ${{ env.SITE_DIR }}/static/videos
+            ${{ env.SITE_DIR }}/static/audios
           key: ${{ steps.site-cache.outputs.cache-primary-key }}
 
       - name: Resolve KV namespace id (UPVOTES)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          KV_NAMESPACE_TITLE: trainsh-blog-UPVOTES
+          KV_NAMESPACE_TITLE: notion-autoblog-UPVOTES
         run: |
           set -euo pipefail
 
@@ -129,7 +131,7 @@ jobs:
 
           api="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/storage/kv/namespaces"
           auth=(-H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Content-Type: application/json")
-          title="${KV_NAMESPACE_TITLE:-trainsh-blog-UPVOTES}"
+          title="${KV_NAMESPACE_TITLE:-notion-autoblog-UPVOTES}"
 
           existing="$(curl -sS "${auth[@]}" "$api?per_page=1000" | jq -r --arg title "$title" '.result[] | select(.title == $title) | .id' | head -n1 || true)"
 
@@ -151,7 +153,7 @@ jobs:
           echo "UPVOTE_KV_NAMESPACE=$existing" >> "$GITHUB_ENV"
 
       - name: Generate Wrangler config
-        working-directory: cloudflare
+        working-directory: examples/trainsh-blog/cloudflare
         env:
           CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
           UPVOTE_KV_NAMESPACE: ${{ env.UPVOTE_KV_NAMESPACE }}
@@ -182,5 +184,5 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: cloudflare
+          workingDirectory: examples/trainsh-blog/cloudflare
           command: deploy --config wrangler.generated.toml

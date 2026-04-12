@@ -1,4 +1,4 @@
-name = "trainsh-blog"
+name = "notion-autoblog"
 main = "../themes/hugo-trainsh/cloudflare/worker.py"
 compatibility_date = "2025-12-09"
 compatibility_flags = ["python_workers"]

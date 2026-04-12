@@ -1,0 +1,99 @@
+# This is an example workflow showing how to deploy to Cloudflare Pages.
+# Adjust the `on:` section if you want to change the default push/schedule behavior.
+
+name: Deploy Example (Cloudflare Pages)
+
+concurrency:
+  group: site-${{ github.ref_name }}-media-v1
+  cancel-in-progress: false
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Create virtual environment
+        run: uv venv --python 3.10
+
+      - name: Install notion-autoblog
+        run: uv pip install notion-autoblog/
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v2
+        with:
+          hugo-version: 'latest'
+          extended: true
+
+      - name: Restore site cache (media and state)
+        uses: actions/cache/restore@v4
+        id: site-cache
+        with:
+          path: |
+            .notion_cache.json
+            static/images
+            static/videos
+            static/audios
+          key: site-${{ github.ref_name }}-media-v1
+          restore-keys: |
+            site-${{ github.ref_name }}-
+
+      - name: Log cache status
+        run: |
+          echo "cache-primary-key=${{ steps.site-cache.outputs.cache-primary-key }}"
+          echo "cache-hit=${{ steps.site-cache.outputs.cache-hit }}"
+
+      - name: Change cache ownership
+        if: steps.site-cache.outputs.cache-hit == 'true'
+        run: |
+          if [ -f .notion_cache.json ]; then sudo chown $(whoami) .notion_cache.json; fi
+          if [ -d static ]; then sudo chown -R $(whoami) static; fi
+
+      - name: Sync posts from Notion
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: uv run notion-autoblog --site-dir .
+
+      - name: Build Hugo site
+        run: hugo --minify --cleanDestinationDir
+
+      - name: Save site cache
+        if: always() && steps.site-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            .notion_cache.json
+            static/images
+            static/videos
+            static/audios
+          key: ${{ steps.site-cache.outputs.cache-primary-key }}
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ./public --project-name ${{ vars.CLOUDFLARE_PAGES_PROJECT }} --branch main
