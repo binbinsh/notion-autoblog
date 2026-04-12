@@ -1,4 +1,5 @@
 import os
+import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -21,6 +22,9 @@ class HugoConverter:
         self.translation_languages: List[str] = []
         self.translation_default_language: Optional[str] = None
         self.translation_service = None
+        self.summary_service = None
+        self.content_section: Optional[str] = None
+        self.section_aliases: List[str] = []
         os.makedirs(self.content_dir, exist_ok=True)
 
     def set_translation_config(self, target_languages: List[str], translator=None):
@@ -29,6 +33,13 @@ class HugoConverter:
             self.translation_languages[0] if self.translation_languages else None
         )
         self.translation_service = translator
+
+    def set_summary_service(self, summarizer=None):
+        self.summary_service = summarizer
+
+    def set_content_config(self, *, content_section: Optional[str], section_aliases: Optional[List[str]] = None):
+        self.content_section = (content_section or "").strip().strip("/") or None
+        self.section_aliases = [alias.strip().strip("/") for alias in (section_aliases or []) if alias.strip()]
 
     def set_id_to_slug_mapping(
         self,
@@ -43,7 +54,16 @@ class HugoConverter:
         if not slug:
             return []
         cleaned = slug.strip().lstrip("/").strip("/")
-        return [part for part in cleaned.split("/") if part]
+        parts = [part for part in cleaned.split("/") if part]
+        if not self.content_section:
+            return parts
+        if not parts:
+            return [self.content_section]
+        if parts[0] == self.content_section:
+            return parts
+        if parts[0] in self.section_aliases:
+            return [self.content_section, *parts[1:]]
+        return [self.content_section, *parts]
 
     def _resolve_output_dir(self, slug_parts: List[str]) -> str:
         if len(slug_parts) > 1:
@@ -148,6 +168,11 @@ class HugoConverter:
             )
             translated_front_matter["notion_source_path"] = source_path
             translated_content = translation.get("content", "").strip()
+            translated_front_matter["summary"] = self._build_summary(
+                language=target_lang,
+                title=translated_front_matter["title"],
+                content=translated_content,
+            )
 
             file_path = self._write_markdown(
                 slug_parts=slug_parts,
@@ -176,6 +201,11 @@ class HugoConverter:
                 "draft": False,
                 "notion_id": post.id,
                 "translationKey": post.id,
+                "summary": self._build_summary(
+                    language=source_lang,
+                    title=post.title,
+                    content=base_content,
+                ),
             }
 
             if getattr(post, "categories", None):
@@ -217,6 +247,46 @@ class HugoConverter:
         except Exception as exc:
             logger.error("Error converting post %s: %s", post.title, exc)
             return False
+
+    def _build_summary(self, *, language: Optional[str], title: str, content: str) -> str:
+        if self.summary_service:
+            try:
+                summary = self.summary_service.summarize(language or "", title, content)
+                if summary:
+                    return summary
+            except Exception as exc:
+                logger.warning("Summary generation failed for %s: %s", title, exc)
+        return self._fallback_summary(content)
+
+    def _fallback_summary(self, content: str) -> str:
+        if not content:
+            return ""
+
+        cleaned_lines: List[str] = []
+        in_code_fence = False
+        for raw_line in content.splitlines():
+            line = raw_line.strip()
+            if line.startswith("```"):
+                in_code_fence = not in_code_fence
+                continue
+            if in_code_fence or not line:
+                continue
+            if line.startswith("#") or line.startswith("{{<") or line.startswith("{{%"):
+                continue
+            if line.startswith("<aside") or line.startswith("</aside>"):
+                continue
+            cleaned_lines.append(line)
+
+        plain = " ".join(cleaned_lines)
+        plain = re.sub(r"!\[([^\]]*)\]\([^)]+\)", r"\1", plain)
+        plain = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", plain)
+        plain = re.sub(r"`([^`]+)`", r"\1", plain)
+        plain = re.sub(r"<[^>]+>", " ", plain)
+        plain = " ".join(plain.split())
+        if len(plain) <= 180:
+            return plain
+        truncated = plain[:177].rsplit(" ", 1)[0].rstrip()
+        return f"{truncated}..."
 
     def clean_posts_directory(self):
         """Clean generated Notion posts from the content directory."""

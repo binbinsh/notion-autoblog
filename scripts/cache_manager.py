@@ -26,6 +26,7 @@ class CacheManager:
                     data.setdefault("posts", {})
                     data.setdefault("media", {})
                     data.setdefault("translations", {})
+                    data.setdefault("summaries", {})
                     data.setdefault("content_paths", {})
                     logging.getLogger(__name__).debug(
                         f"Loaded cache from {self.cache_file}: posts={len(data.get('posts', {}))}, media={len(data.get('media', {}))}"
@@ -40,6 +41,7 @@ class CacheManager:
             "posts": {},
             "media": {},
             "translations": {},
+            "summaries": {},
             "content_paths": {},
         }
 
@@ -85,6 +87,14 @@ class CacheManager:
     def cache_translation(self, key: str, payload: Dict):
         """Cache translation payload by key."""
         self.cache_data.setdefault("translations", {})[key] = payload
+
+    def get_cached_summary(self, key: str) -> Optional[Dict]:
+        """Return cached summary payload if present."""
+        return self.cache_data.get("summaries", {}).get(key)
+
+    def cache_summary(self, key: str, payload: Dict):
+        """Cache summary payload by key."""
+        self.cache_data.setdefault("summaries", {})[key] = payload
 
     def get_cached_media(self, url: str, last_edited_time: Optional[str] = None) -> Optional[str]:
         """Get cached media file path by normalized media key if it hasn't been updated."""

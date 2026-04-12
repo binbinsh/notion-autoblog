@@ -12,7 +12,7 @@ import tiktoken
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_OPENROUTER_MODEL = "openai/gpt-oss-120b:free"
+DEFAULT_OPENROUTER_MODEL = "google/gemma-4-31b-it:free"
 DEFAULT_OPENROUTER_SITE_URL = "https://github.com/binbinsh/notion-autoblog"
 DEFAULT_OPENROUTER_APP_NAME = "notion-autoblog"
 DEFAULT_LOG_PREVIEW_CHARS = 160
@@ -545,14 +545,14 @@ class OpenRouterTranslator:
     def __init__(
         self,
         api_key: str,
-        model: str = DEFAULT_OPENROUTER_MODEL,
+        model: Optional[str] = None,
         cache_manager=None,
         site_url: Optional[str] = DEFAULT_OPENROUTER_SITE_URL,
         app_name: Optional[str] = DEFAULT_OPENROUTER_APP_NAME,
         timeout: int = 60,
     ):
         self.api_key = api_key
-        self.model = model
+        self.model = (model or os.getenv("OPENROUTER_TRANSLATION_MODEL") or DEFAULT_OPENROUTER_MODEL).strip()
         self.cache_manager = cache_manager
         self.site_url = site_url
         self.app_name = app_name

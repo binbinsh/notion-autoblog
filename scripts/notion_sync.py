@@ -13,6 +13,7 @@ from media_handler import MediaHandler
 from logging_utils import setup_logging
 from cache_manager import CacheManager
 from translation_service import OpenRouterTranslator
+from summary_service import OpenRouterSummarizer
 from hugo_config import infer_languages_from_config, read_hugo_config
 
 # Configure logging
@@ -84,7 +85,7 @@ def main():
     parser.add_argument('--clean', action='store_true',
                         help='Clean existing posts before sync')
     parser.add_argument('--openrouter-api-key', default=os.getenv('OPENROUTER_API_KEY'),
-                        help='OpenRouter API key for translations')
+                        help='OpenRouter API key for translations and summaries')
 
     args = parser.parse_args()
 
@@ -111,6 +112,12 @@ def main():
 
         hugo_config = read_hugo_config(str(site_dir))
         languages = infer_languages_from_config(hugo_config)
+        params = hugo_config.get("params") or {}
+        notion_params = params.get("notion") or {}
+        content_section = (notion_params.get("contentsection") or notion_params.get("contentSection") or "").strip()
+        section_aliases = notion_params.get("sectionaliases") or notion_params.get("sectionAliases") or []
+        if not isinstance(section_aliases, list):
+            section_aliases = []
         if languages:
             logger.info(
                 "Inferred languages from Hugo: %s (default: %s)",
@@ -119,7 +126,13 @@ def main():
             )
         default_language = languages[0] if languages else None
 
+        hugo_converter.set_content_config(
+            content_section=content_section,
+            section_aliases=section_aliases,
+        )
+
         translator = None
+        summarizer = None
         if languages:
             if not args.openrouter_api_key:
                 logger.warning("OPENROUTER_API_KEY is not set; skipping translations")
@@ -128,8 +141,17 @@ def main():
                     args.openrouter_api_key,
                     cache_manager=cache_manager,
                 )
+                summarizer = OpenRouterSummarizer(
+                    args.openrouter_api_key,
+                    cache_manager=cache_manager,
+                )
         else:
             logger.info("No Hugo language config found; skipping translations")
+            if args.openrouter_api_key:
+                summarizer = OpenRouterSummarizer(
+                    args.openrouter_api_key,
+                    cache_manager=cache_manager,
+                )
 
         if languages:
             hugo_converter.set_translation_config(
@@ -137,6 +159,7 @@ def main():
                 translator=translator,
             )
             logger.info("Configured target languages: %s (default: %s)", ", ".join(languages), default_language)
+        hugo_converter.set_summary_service(summarizer)
 
         # Test connection
         if not test_notion_connection(notion_client):

@@ -37,5 +37,6 @@ py-modules = [
   "retry_decorator",
   "concurrent_downloader",
   "translation_service",
+  "summary_service",
   "notion_markdown",
 ]

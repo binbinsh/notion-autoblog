@@ -39,8 +39,8 @@ hasCJKLanguage = true
       weight = 1
 
     [[languages.zh.menu.main]]
-      name = "博客"
-      pageRef = "/blog"
+      name = "归档"
+      pageRef = "/archives"
       weight = 10
 
   [languages.en]
@@ -54,18 +54,21 @@ hasCJKLanguage = true
       weight = 1
 
     [[languages.en.menu.main]]
-      name = "Blog"
-      pageRef = "/blog"
+      name = "Archives"
+      pageRef = "/archives"
       weight = 10
 
 [params]
   author = "Binbin Shen"
-  # Notion slugs currently generate content under /blog/... in CI, so only "blog" is treated as the primary section.
-  mainSections = ["blog"]
+  mainSections = ["posts"]
   description = "Personal notes on software, AI, tools, and everyday workflows."
 
 [params.translate]
   sourceLanguage = "zh"
+
+[params.notion]
+  contentSection = "posts"
+  sectionAliases = ["blog"]
 
 [params.upvote]
   enabled = true
