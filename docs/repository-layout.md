@@ -1,7 +1,8 @@
-# 仓库结构
+# Repository Layout
 
-## 当前结构
-当前仓库以产品仓库为主，示例站点放在 `examples/`：
+## Current Structure
+
+This repository is organized as a product repository with an embedded example site:
 
 ```text
 .
@@ -13,28 +14,32 @@
     └── trainsh-blog/
 ```
 
-## 根目录职责
-- 根目录提供 `notion-autoblog` Python 包
-- `modules/` 保存可复用的 Hugo Modules（目前包含 `translation` 和 `upvote`）
-- `scripts/` 保存同步与转换逻辑
-- `templates/` 保存可复用的 CI/CD 模板
-- `docs/` 保存详细开发文档
+## Root Responsibilities
 
-## example 站点
-`examples/trainsh-blog/` 是当前用于发布 `https://blog.train.sh/` 的 Hugo 示例站点。
+- the root repository provides the `notion-autoblog` Python package
+- `modules/` contains reusable Hugo Modules, currently `translation` and `upvote`
+- `scripts/` contains the sync, translation, summary, and conversion pipeline
+- `templates/` contains reusable CI/CD workflow templates
+- `docs/` contains detailed product and implementation documentation
 
-它包含：
-- Hugo 配置
-- Cloudflare Worker 配置
-- `hugo-trainsh` 主题 submodule
-- 站点首页与分区内容骨架
+## Example Site
 
-## 仓库内发布链路
-根目录的 `.github/workflows/deploy-cloudflare.yml` 会：
+`examples/trainsh-blog/` is the Hugo example site used by this project.
 
-1. 从根目录安装 `notion-autoblog`
-2. 对 `examples/trainsh-blog/` 执行 Notion 同步
-3. 构建该 example 站点
-4. 将结果发布到 `blog.train.sh`
+It contains:
 
-这样仓库名、产品代码和实际发布链路统一由 `notion-autoblog` 管理。
+- Hugo configuration
+- a Cloudflare deployment configuration for the example site
+- the `hugo-trainsh` theme as a git submodule
+- local `layouts/` overrides used to wire repository-provided modules into the site
+
+## Repository-Owned Publishing Flow
+
+The root `.github/workflows/deploy-cloudflare.yml` workflow:
+
+1. installs `notion-autoblog` from the repository root
+2. syncs Notion content into `examples/trainsh-blog/`
+3. builds the example site
+4. deploys the result to Cloudflare
+
+This keeps the package code, example site, and deployment workflow in a single repository.

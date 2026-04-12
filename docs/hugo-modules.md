@@ -1,20 +1,28 @@
-# Hugo 模块
+# Hugo Modules
 
-## 当前模块
-仓库当前提供两个可复用的 Hugo Modules：
+## Available Modules
+
+This repository currently provides two reusable Hugo Modules:
 
 - `modules/translation`
 - `modules/upvote`
 
-## 使用前提
-站点需先初始化 Hugo Modules：
+They expose these shortcodes:
+
+- `{{< translation-note >}}`
+- `{{< upvote >}}`
+
+## Prerequisite
+
+Initialize Hugo Modules in your site first:
 
 ```bash
 hugo mod init example.com/your-site
 ```
 
-## 本地 submodule 场景
-若站点目录结构如下：
+## Local Submodule Setup
+
+If your site layout looks like this:
 
 ```text
 your-site/
@@ -22,7 +30,7 @@ your-site/
 └── notion-autoblog/
 ```
 
-则可在 Hugo 配置中写入：
+add this to your Hugo config:
 
 ```toml
 [module]
@@ -35,48 +43,69 @@ your-site/
     path = "github.com/binbinsh/notion-autoblog/modules/upvote"
 ```
 
-注意：
-- `replacements` 的相对路径是相对于 `themesDir`
-- 默认 `themesDir` 为站点根目录下的 `themes/`
+Notes:
 
-## 主题为 git submodule 时的建议
-若 `themes/hugo-trainsh/` 或其他主题目录本身也是 git submodule，建议保持主题仓库干净，不直接把模块接入逻辑写进主题。
+- `replacements` are resolved relative to `themesDir`
+- by default, `themesDir` is `<site>/themes`
 
-更稳妥的做法是：
-- 主题继续只负责主题本身
-- 站点在 `layouts/` 下覆盖对应模板
-- 覆盖层中再调用 `translation` 或 `upvote` 模块 partial
+## When the Theme Is Also a Git Submodule
 
-例如：
+If `themes/hugo-trainsh/` or another theme directory is itself a git submodule, keep the theme repository clean and wire the modules from the site's own `layouts/` overrides.
 
-```go-html-template
-{{ partial "notion-translation/notice.html" . }}
-{{ partial "notion-upvote/widget.html" . }}
-```
+Recommended approach:
 
-## translation 模块
-用途：
-- 为自动翻译页面渲染统一提示
+- let the theme stay theme-only
+- add local template overrides in the site repository
+- call the module partials from those overrides
 
-推荐接入：
+Example:
 
 ```go-html-template
-{{ partial "notion-translation/notice.html" . }}
+{{ partial "translation/notice.html" . }}
+{{ partial "upvote/widget.html" . }}
 ```
 
-模块文档：
+## Translation Module
+
+Purpose:
+
+- render a consistent machine-translation notice for translated pages
+
+Shortcode:
+
+```md
+{{< translation-note >}}
+```
+
+Recommended partial integration:
+
+```go-html-template
+{{ partial "translation/notice.html" . }}
+```
+
+Module docs:
+
 - `modules/translation/docs/usage.md`
 
-## upvote 模块
-用途：
-- 为文章页渲染点赞组件
-- 提供 Cloudflare Worker 后端示例
+## Upvote Module
 
-推荐接入：
+Purpose:
 
-```go-html-template
-{{ partial "notion-upvote/widget.html" . }}
+- render an upvote widget on article pages
+- provide a Cloudflare Worker backend example
+
+Shortcode:
+
+```md
+{{< upvote >}}
 ```
 
-模块文档：
+Recommended partial integration:
+
+```go-html-template
+{{ partial "upvote/widget.html" . }}
+```
+
+Module docs:
+
 - `modules/upvote/docs/usage.md`
