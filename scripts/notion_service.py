@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 import logging
-import re
 
 import requests
 
@@ -24,6 +23,7 @@ class NotionPost:
         self.content: str = ""
         self.last_edited: datetime = datetime.now()
         self.cover_image: Optional[str] = None
+        self.blocks: List[Dict[str, Any]] = []
 
 
 class NotionClient:
@@ -121,107 +121,56 @@ class NotionClient:
     def _fetch_current_user(self) -> Dict[str, Any]:
         return self._request("GET", "/users/me")
 
-    def _fetch_page_markdown_once(
+    def _fetch_block_children(
         self,
-        page_id: str,
+        block_id: str,
         *,
-        include_transcript: bool = False,
+        start_cursor: Optional[str] = None,
+        page_size: int = 100,
     ) -> Dict[str, Any]:
-        params: Dict[str, Any] = {}
-        if include_transcript:
-            params["include_transcript"] = "true"
+        params: Dict[str, Any] = {"page_size": page_size}
+        if start_cursor is not None:
+            params["start_cursor"] = start_cursor
         return self._request(
             "GET",
-            f"/pages/{page_id}/markdown",
+            f"/blocks/{block_id}/children",
             params=params,
             timeout=60,
         )
 
-    def _fetch_page_markdown_recursive(
-        self,
-        page_id: str,
-        *,
-        include_transcript: bool = False,
-        visited: Optional[set[str]] = None,
-    ) -> str:
-        visited = visited or set()
-        normalized_page_id = page_id.replace("-", "").lower()
-        if normalized_page_id in visited:
-            return ""
-        visited.add(normalized_page_id)
+    def _get_page_blocks(self, page_id: str) -> List[Dict[str, Any]]:
+        """Retrieve a page's blocks with nested children resolved recursively."""
 
-        payload = self._fetch_page_markdown_once(page_id, include_transcript=include_transcript)
-        markdown = (payload.get("markdown") or "").replace("\r\n", "\n").replace("\r", "\n")
-        unknown_block_ids = payload.get("unknown_block_ids", []) or []
+        def fetch_children_recursively(block_id: str) -> List[Dict[str, Any]]:
+            collected_blocks: List[Dict[str, Any]] = []
+            start_cursor: Optional[str] = None
 
-        if payload.get("truncated"):
-            logger.warning(
-                "Notion markdown response truncated for %s; attempting to resolve %d unknown block(s)",
-                page_id,
-                len(unknown_block_ids),
-            )
-
-        for unknown_id in unknown_block_ids:
-            subtree = self._fetch_unknown_subtree(
-                unknown_id,
-                include_transcript=include_transcript,
-                visited=visited,
-            )
-            if not subtree:
-                continue
-            markdown = self._replace_unknown_placeholder(markdown, unknown_id, subtree)
-
-        return markdown
-
-    def _fetch_unknown_subtree(
-        self,
-        block_id: str,
-        *,
-        include_transcript: bool,
-        visited: set[str],
-    ) -> str:
-        try:
-            return self._fetch_page_markdown_recursive(
-                block_id,
-                include_transcript=include_transcript,
-                visited=visited,
-            )
-        except requests.HTTPError as exc:
-            response = exc.response
-            if response is not None and response.status_code == 404:
-                logger.warning(
-                    "Skipping inaccessible unknown block %s while resolving markdown subtree",
+            while True:
+                response = self._fetch_block_children(
                     block_id,
+                    start_cursor=start_cursor,
+                    page_size=100,
                 )
-                return ""
-            raise
+                for block in response.get("results", []):
+                    if block.get("has_children"):
+                        try:
+                            block["children"] = fetch_children_recursively(block["id"])
+                        except Exception as exc:
+                            logger.warning(
+                                "Failed to fetch children for block %s: %s",
+                                block.get("id"),
+                                exc,
+                            )
+                            block["children"] = []
+                    collected_blocks.append(block)
 
-    def _replace_unknown_placeholder(self, markdown: str, block_id: str, subtree: str) -> str:
-        compact_id = block_id.replace("-", "").lower()
-        patterns = [
-            re.compile(
-                rf'<unknown\b[^>]*url="[^"]*#{compact_id}[^"]*"[^>]*/>',
-                re.IGNORECASE,
-            ),
-            re.compile(
-                rf'<unknown\b[^>]*url="[^"]*{compact_id}[^"]*"[^>]*/>',
-                re.IGNORECASE,
-            ),
-        ]
+                if not response.get("has_more"):
+                    break
+                start_cursor = response.get("next_cursor")
 
-        replacement = subtree.strip()
-        for pattern in patterns:
-            new_markdown, count = pattern.subn(replacement, markdown, count=1)
-            if count:
-                return new_markdown
+            return collected_blocks
 
-        logger.warning(
-            "Failed to match unknown placeholder for %s; appending resolved subtree at the end",
-            block_id,
-        )
-        if not markdown.strip():
-            return replacement
-        return f"{markdown.rstrip()}\n\n{replacement}"
+        return fetch_children_recursively(page_id)
 
     def test_connection(self) -> Dict[str, Any]:
         """Test connection to Notion and the configured database."""
@@ -409,7 +358,7 @@ class NotionClient:
             post.last_edited = datetime.fromisoformat(
                 page["last_edited_time"].replace("Z", "+00:00")
             )
-            post.content = self._fetch_page_markdown_recursive(post.id)
+            post.blocks = self._get_page_blocks(post.id)
             return post
         except Exception as exc:
             logger.error("Error parsing page %s: %s", page.get("id", "unknown"), exc)

@@ -1,40 +1,51 @@
-{{- $sourceLang := .Get "sourceLang" | default (.Page.Params.notion_source_language | default "") -}}
-{{- $translationLang := .Get "translationLang" | default (.Page.Params.notion_translation_language | default "") -}}
-{{- $sourcePath := .Get "sourcePath" | default (.Page.Params.notion_source_path | default "") -}}
-{{- if not (and $sourceLang $translationLang $sourcePath) -}}
-{{-   return -}}
+{{- $fallbackSourceLang := "" -}}
+{{- $fallbackTranslationLang := "" -}}
+{{- $fallbackSourcePath := "" -}}
+{{- if isset .Page.Params "notion_source_language" -}}
+  {{- $fallbackSourceLang = .Page.Params.notion_source_language | default "" -}}
 {{- end -}}
-{{- if eq .Page.Language.Lang $sourceLang -}}
-{{-   return -}}
+{{- if isset .Page.Params "notion_translation_language" -}}
+  {{- $fallbackTranslationLang = .Page.Params.notion_translation_language | default "" -}}
 {{- end -}}
-{{- if ne .Page.Language.Lang $translationLang -}}
-{{-   return -}}
+{{- if isset .Page.Params "notion_source_path" -}}
+  {{- $fallbackSourcePath = .Page.Params.notion_source_path | default "" -}}
 {{- end -}}
-{{- $sourcePage := false -}}
-{{- range .Page.AllTranslations -}}
-  {{- if eq .Language.Lang $sourceLang -}}
-    {{- $sourcePage = . -}}
-  {{- end -}}
-{{- end -}}
-{{- if not $sourcePage -}}
-  {{- $sourcePage = site.GetPage $sourcePath -}}
-{{- end -}}
-{{- with $sourcePage -}}
-  {{- if eq .RelPermalink $.Page.RelPermalink -}}
-    {{- return -}}
-  {{- end -}}
-{{- end -}}
-{{- $sourceLabel := $sourceLang -}}
-{{- with $sourcePage -}}
-  {{- with .Language.LanguageName -}}
-    {{- $sourceLabel = . -}}
-  {{- end -}}
-{{- end -}}
-{{- $href := $sourcePath -}}
-{{- with $sourcePage -}}
-  {{- $href = .RelPermalink -}}
-{{- end -}}
-{{- $style := resources.Get "translation/css/notice.css" | minify -}}
+{{- $sourceLang := .Get "sourceLang" | default $fallbackSourceLang -}}
+{{- $translationLang := .Get "translationLang" | default $fallbackTranslationLang -}}
+{{- $sourcePath := .Get "sourcePath" | default $fallbackSourcePath -}}
+{{- if and $sourceLang $translationLang $sourcePath -}}
+  {{- $currentLang := lower (replaceRE "[-_].*$" "" .Page.Language.Lang) -}}
+  {{- $sourceLangNorm := lower (replaceRE "[-_].*$" "" $sourceLang) -}}
+  {{- $translationLangNorm := lower (replaceRE "[-_].*$" "" $translationLang) -}}
+  {{- if and (ne $sourceLangNorm $translationLangNorm) (ne $currentLang $sourceLangNorm) (eq $currentLang $translationLangNorm) -}}
+    {{- $sourcePage := false -}}
+    {{- range .Page.AllTranslations -}}
+      {{- $candidateLang := lower (replaceRE "[-_].*$" "" .Language.Lang) -}}
+      {{- if eq $candidateLang $sourceLangNorm -}}
+        {{- $sourcePage = . -}}
+      {{- end -}}
+    {{- end -}}
+    {{- if not $sourcePage -}}
+      {{- $sourcePage = site.GetPage $sourcePath -}}
+    {{- end -}}
+    {{- $renderNotice := true -}}
+    {{- with $sourcePage -}}
+      {{- if eq .RelPermalink $.Page.RelPermalink -}}
+        {{- $renderNotice = false -}}
+      {{- end -}}
+    {{- end -}}
+    {{- if $renderNotice -}}
+      {{- $sourceLabel := $sourceLang -}}
+      {{- with $sourcePage -}}
+        {{- with .Language.LanguageName -}}
+          {{- $sourceLabel = . -}}
+        {{- end -}}
+      {{- end -}}
+      {{- $href := $sourcePath -}}
+      {{- with $sourcePage -}}
+        {{- $href = .RelPermalink -}}
+      {{- end -}}
+      {{- $style := resources.Get "translation/css/notice.css" | minify -}}
 <style>{{- $style.Content | safeCSS -}}</style>
 <aside class="translation-note" role="note">
   <strong>{{ i18n "translation_note_label" }}</strong>
@@ -44,3 +55,6 @@
     {{ i18n "translation_from_suffix" }}
   </span>
 </aside>
+    {{- end -}}
+  {{- end -}}
+{{- end -}}

@@ -6,7 +6,7 @@ from hugo_converter import HugoConverter
 
 
 class _FakeMediaHandler:
-    def download_media(self, url: str, media_type: str):
+    def download_media(self, url: str, media_type: str, last_edited_time=None):
         return f"/{media_type}s/{Path(url).name or 'file.bin'}"
 
 
@@ -24,7 +24,27 @@ class _Post:
         self.last_edited = __import__("datetime").datetime(2026, 4, 12, 12, 30, 0)
         self.tags = ["tag"]
         self.categories = []
-        self.content = "First paragraph.\n\nSecond paragraph."
+        self.blocks = [
+            {
+                "id": "11111111-1111-1111-1111-111111111111",
+                "type": "heading_2",
+                "heading_2": {
+                    "rich_text": [{"plain_text": "Section"}],
+                },
+            },
+            {
+                "type": "paragraph",
+                "paragraph": {
+                    "rich_text": [{"plain_text": "First paragraph."}],
+                },
+            },
+            {
+                "type": "paragraph",
+                "paragraph": {
+                    "rich_text": [{"plain_text": "Second paragraph."}],
+                },
+            },
+        ]
         self.cover_image = None
 
 
@@ -52,6 +72,8 @@ class HugoConverterTests(unittest.TestCase):
             content = output_file.read_text(encoding="utf-8")
             self.assertIn("summary: en:Hello", content)
             self.assertIn("translationKey: 12345678-1234-1234-1234-123456789012", content)
+            self.assertIn("## Section {#11111111111111111111111111111111}", content)
+            self.assertIn("First paragraph.", content)
 
     def test_fallback_summary_prefers_intro_paragraphs(self):
         converter = HugoConverter("/tmp", _FakeMediaHandler())
@@ -70,6 +92,25 @@ class HugoConverterTests(unittest.TestCase):
             "This opening paragraph sounds like the author's own introduction. "
             "It should stay together in the fallback summary.",
         )
+
+    def test_blocks_to_markdown_keeps_nested_lists(self):
+        converter = HugoConverter("/tmp", _FakeMediaHandler())
+        blocks = [
+            {
+                "type": "bulleted_list_item",
+                "bulleted_list_item": {"rich_text": [{"plain_text": "Parent"}]},
+                "children": [
+                    {
+                        "type": "numbered_list_item",
+                        "numbered_list_item": {"rich_text": [{"plain_text": "Child"}]},
+                    }
+                ],
+            }
+        ]
+
+        content = converter._blocks_to_markdown(blocks)
+
+        self.assertEqual(content, "- Parent\n    1. Child")
 
 
 if __name__ == "__main__":

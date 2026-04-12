@@ -1,6 +1,6 @@
 # notion-autoblog
 
-Sync Notion content into Hugo using the latest Notion API and the official Enhanced Markdown format. The repository also ships reusable Hugo modules for translation notices and upvotes.
+Sync Notion content into Hugo using the latest Notion API and a block-based local Markdown conversion pipeline. The repository also ships reusable Hugo modules for translation notices and upvotes.
 
 ## Quick Start
 
@@ -95,8 +95,7 @@ uv run notion-autoblog --site-dir /absolute/path/to/site
 - if `params.notion.contentSection = "posts"` is set, synced posts are written under `content/posts/`
 - Images, videos, audio files, and generic files are downloaded into `static/images/`, `static/videos/`, `static/audios/`, and `static/files/`
 - The cache defaults to `.notion_cache.json` at the site root
-- Page content is fetched from Notion's official `GET /v1/pages/{page_id}/markdown` endpoint
-- The sync pipeline is markdown-only; there is no `blocks` or `hybrid` mode
+- Page content is fetched from Notion block children endpoints and converted locally to Markdown
 - summaries can be generated automatically and stored in front matter as `summary`
 
 ## Shortcodes
