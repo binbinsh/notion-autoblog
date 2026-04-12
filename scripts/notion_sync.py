@@ -96,6 +96,7 @@ def main():
         logger.error("NOTION_TOKEN and NOTION_DATABASE_ID are required")
         sys.exit(1)
 
+    cache_manager = None
     try:
         site_dir = Path(args.site_dir).expanduser().resolve()
         if not site_dir.exists():
@@ -105,6 +106,7 @@ def main():
         content_dir = _resolve_site_path(site_dir, args.content_dir, "content")
         static_dir = _resolve_site_path(site_dir, args.static_dir, "static")
         cache_file = _resolve_site_path(site_dir, args.cache_file, ".notion_cache.json")
+        logger.info("Using cache file: %s", cache_file)
 
         # Initialize components
         notion_client = NotionClient(args.notion_token, args.database_id)
@@ -216,6 +218,7 @@ def main():
                     success_count += 1
                     # Update per-post cache after successful conversion
                     cache_manager.update_post_cache(post.id, post.last_edited)
+                    cache_manager.save_cache()
                 else:
                     failed_posts.append(post.title)
                     logger.error("Failed to convert: %s", post.title)
@@ -234,6 +237,11 @@ def main():
             sys.exit(1)
 
     except Exception as e:
+        if cache_manager:
+            try:
+                cache_manager.save_cache()
+            except Exception:
+                logger.exception("Failed to persist cache after sync error")
         logger.error(f"Sync failed: {e}")
         sys.exit(1)
 

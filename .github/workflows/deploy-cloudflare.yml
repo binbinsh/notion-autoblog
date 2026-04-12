@@ -77,9 +77,12 @@ jobs:
             ${{ env.SITE_DIR }}/static/videos
             ${{ env.SITE_DIR }}/static/audios
             ${{ env.SITE_DIR }}/static/files
-          # Use a fixed cache key so the same cache entry is reused across runs.
-          key: site-${{ github.ref_name }}-media-v1
+          # Cache contents evolve after each sync, so restore the latest prefix match
+          # and save the current run under a fresh key.
+          key: site-${{ github.ref_name }}-media-v2-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
+            site-${{ github.ref_name }}-media-v2-
+            site-${{ github.ref_name }}-media-v1
             site-${{ github.ref_name }}-
 
       - name: Log cache status
@@ -88,7 +91,6 @@ jobs:
           echo "cache-hit=${{ steps.site-cache.outputs.cache-hit }}"
 
       - name: Fix cached file ownership
-        if: steps.site-cache.outputs.cache-hit == 'true'
         run: |
           if [ -f "$SITE_DIR/.notion_cache.json" ]; then sudo chown "$(whoami)" "$SITE_DIR/.notion_cache.json"; fi
           if [ -d "$SITE_DIR/static" ]; then sudo chown -R "$(whoami)" "$SITE_DIR/static"; fi
@@ -105,7 +107,7 @@ jobs:
         run: hugo --source "$SITE_DIR" --minify --cleanDestinationDir
 
       - name: Save site cache (media and state)
-        if: always() && steps.site-cache.outputs.cache-hit != 'true'
+        if: always()
         uses: actions/cache/save@v4
         with:
           path: |
@@ -114,7 +116,7 @@ jobs:
             ${{ env.SITE_DIR }}/static/videos
             ${{ env.SITE_DIR }}/static/audios
             ${{ env.SITE_DIR }}/static/files
-          key: ${{ steps.site-cache.outputs.cache-primary-key }}
+          key: site-${{ github.ref_name }}-media-v2-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Resolve KV namespace id (UPVOTES)
         env:

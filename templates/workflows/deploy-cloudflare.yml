@@ -4,7 +4,7 @@
 name: Deploy Example (Cloudflare Pages)
 
 concurrency:
-  group: site-${{ github.ref_name }}-media-v1
+  group: site-${{ github.ref_name }}-media-v2
   cancel-in-progress: false
 
 on:
@@ -20,6 +20,8 @@ jobs:
     permissions:
       contents: read
       deployments: write
+    env:
+      SITE_DIR: .
     steps:
       - uses: actions/checkout@v4
         with:
@@ -56,14 +58,17 @@ jobs:
         id: site-cache
         with:
           path: |
-            .notion_cache.json
-            static/images
-            static/videos
-            static/audios
-            static/files
-          key: site-${{ github.ref_name }}-media-v1
+            ${{ env.SITE_DIR }}/.notion_cache.json
+            ${{ env.SITE_DIR }}/static/images
+            ${{ env.SITE_DIR }}/static/videos
+            ${{ env.SITE_DIR }}/static/audios
+            ${{ env.SITE_DIR }}/static/files
+          # Cache contents evolve after each sync, so restore the latest prefix match
+          # and save the current run under a fresh key.
+          key: site-${{ github.ref_name }}-media-v2-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            site-${{ github.ref_name }}-
+            site-${{ github.ref_name }}-media-v2-
+            site-${{ github.ref_name }}-media-v1
 
       - name: Log cache status
         run: |
@@ -71,10 +76,9 @@ jobs:
           echo "cache-hit=${{ steps.site-cache.outputs.cache-hit }}"
 
       - name: Change cache ownership
-        if: steps.site-cache.outputs.cache-hit == 'true'
         run: |
-          if [ -f .notion_cache.json ]; then sudo chown $(whoami) .notion_cache.json; fi
-          if [ -d static ]; then sudo chown -R $(whoami) static; fi
+          if [ -f "$SITE_DIR/.notion_cache.json" ]; then sudo chown $(whoami) "$SITE_DIR/.notion_cache.json"; fi
+          if [ -d "$SITE_DIR/static" ]; then sudo chown -R $(whoami) "$SITE_DIR/static"; fi
 
       - name: Sync posts from Notion
         env:
@@ -82,29 +86,29 @@ jobs:
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: uv run notion-autoblog --site-dir .
+        run: uv run notion-autoblog --site-dir "$SITE_DIR"
 
       - name: Build Hugo site
-        run: hugo --minify --cleanDestinationDir
+        run: hugo --source "$SITE_DIR" --minify --cleanDestinationDir
 
       - name: Save site cache
-        if: always() && steps.site-cache.outputs.cache-hit != 'true'
+        if: always()
         uses: actions/cache/save@v4
         with:
           path: |
-            .notion_cache.json
-            static/images
-            static/videos
-            static/audios
-            static/files
-          key: ${{ steps.site-cache.outputs.cache-primary-key }}
+            ${{ env.SITE_DIR }}/.notion_cache.json
+            ${{ env.SITE_DIR }}/static/images
+            ${{ env.SITE_DIR }}/static/videos
+            ${{ env.SITE_DIR }}/static/audios
+            ${{ env.SITE_DIR }}/static/files
+          key: site-${{ github.ref_name }}-media-v2-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy ./public --project-name ${{ vars.CLOUDFLARE_PAGES_PROJECT }} --branch main
+          command: pages deploy "${{ env.SITE_DIR }}/public" --project-name ${{ vars.CLOUDFLARE_PAGES_PROJECT }} --branch main
 
       - name: Purge Cloudflare cache
         env:
