@@ -8,6 +8,7 @@ Thumbs.db
 uv.lock
 .hugo_build.lock
 .env
+.wrangler/
 node_modules/
 public/
 examples/trainsh-blog/.notion_cache.json
