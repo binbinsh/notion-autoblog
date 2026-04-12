@@ -9,6 +9,12 @@
 
 它们都面向示例站点和下游 Hugo 站点复用。
 
+需要特别说明：
+
+- `summary` 不是独立 Hugo 模块
+- 摘要能力属于同步管线内置功能
+- 同步时生成的摘要会直接写入页面 front matter 的 `summary`
+
 ## 引入方式
 
 在 Hugo 站点中初始化 Hugo Modules：
