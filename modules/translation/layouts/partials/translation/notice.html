@@ -16,6 +16,11 @@
 {{- if not $sourcePage -}}
   {{- $sourcePage = site.GetPage $sourcePath -}}
 {{- end -}}
+{{- with $sourcePage -}}
+  {{- if eq .RelPermalink $.RelPermalink -}}
+    {{- return -}}
+  {{- end -}}
+{{- end -}}
 {{- $sourceLabel := $sourceLang -}}
 {{- with $sourcePage -}}
   {{- with .Language.LanguageName -}}
