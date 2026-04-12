@@ -82,8 +82,6 @@ jobs:
           key: site-${{ github.ref_name }}-media-v2-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             site-${{ github.ref_name }}-media-v2-
-            site-${{ github.ref_name }}-media-v1
-            site-${{ github.ref_name }}-
 
       - name: Log cache status
         run: |
