@@ -1,15 +1,11 @@
-# notion-autoblog
+# Instructions for Notion-AutoBlog
 
 ## General Instructions
-- Always `use context7` for the most recent docs and best practices.
-- All comments in English and documentations in Simplified Chinese.
-- Include only brief end-user instructions in the root README.md file.
+
+- Include only brief end-user instructions in the root README.md file (English only)
 - Place detailed development documentation in docs/*.md (use lowercase filenames).
-- Always prioritize ast-grep (cmd: `sg`) over regex/string-replace for code manipulation, using AST patterns to ensure structural accuracy and avoid syntax errors. Examples:
-    1. Swap Args: `sg run -p 'fn($A, $B)' -r 'fn($B, $A)'`
-    2. Wrap Error: `sg run -p 'return $E' -r 'return wrap($E)'`
-    3. API Update: `sg run -p 'user.id' -r 'user.get_id()'`
 - No legacy code, no backward compatibility.
 
 ## Python Instructions
+
 - Always use `uv` for python package manager. The `.venv` is located in the project root.

@@ -9,6 +9,11 @@
 - 本地静态资源
 - 示例站点的 Cloudflare 部署产物
 
+仓库同时提供两个可复用的 Hugo 扩展：
+
+- `translation` 翻译提示扩展
+- `upvote` 点赞扩展
+
 当前仓库本身就是可复用模板，维护重点是根目录 Python 包、`examples/trainsh-blog/` 示例站点，以及根目录 GitHub Actions workflow。
 
 ## 运行前准备

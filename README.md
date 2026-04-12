@@ -1,6 +1,6 @@
 # notion-autoblog
 
-Sync a Notion database into a Hugo site, generate optional multilingual pages with Cloudflare Workers AI, and ship the result with the bundled example deployment workflow.
+Sync a Notion database into a Hugo site, generate optional multilingual pages with Cloudflare Workers AI, and ship the result with the bundled translation and upvote Hugo extensions plus the example deployment workflow.
 
 ## Quick Start
 
