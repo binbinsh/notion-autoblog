@@ -8,7 +8,6 @@
 #   - NOTION_DATABASE_ID
 #   - CLOUDFLARE_API_TOKEN
 #   - CLOUDFLARE_ACCOUNT_ID
-#   - CLOUDFLARE_ZONE_ID
 name: Deploy gridpla.net (Cloudflare Worker)
 
 concurrency:
@@ -83,44 +82,11 @@ jobs:
           restore-keys: |
             gridplanet-${{ github.ref_name }}-media-v2-
 
-      - name: Restore pre-migration site cache
-        if: ${{ steps.site-cache.outputs.cache-matched-key == '' }}
-        uses: actions/cache/restore@v4
-        id: pre-migration-site-cache
-        with:
-          path: |
-            examples/trainsh-blog/.notion_cache.json
-            examples/trainsh-blog/static/images
-            examples/trainsh-blog/static/videos
-            examples/trainsh-blog/static/audios
-            examples/trainsh-blog/static/files
-          key: pre-migration-${{ github.ref_name }}-media-v2-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: |
-            site-${{ github.ref_name }}-media-v2-
-
-      - name: Move pre-migration cache into gridplanet
-        if: ${{ steps.site-cache.outputs.cache-matched-key == '' && steps.pre-migration-site-cache.outputs.cache-matched-key != '' }}
-        run: |
-          set -euo pipefail
-
-          if [ -f "examples/trainsh-blog/.notion_cache.json" ]; then
-            mv "examples/trainsh-blog/.notion_cache.json" "$SITE_DIR/.notion_cache.json"
-          fi
-
-          for dir in images videos audios files; do
-            if [ -d "examples/trainsh-blog/static/$dir" ]; then
-              mkdir -p "$SITE_DIR/static"
-              rm -rf "$SITE_DIR/static/$dir"
-              mv "examples/trainsh-blog/static/$dir" "$SITE_DIR/static/$dir"
-            fi
-          done
-
       - name: Log cache status
         run: |
           echo "cache-primary-key=${{ steps.site-cache.outputs.cache-primary-key }}"
           echo "cache-matched-key=${{ steps.site-cache.outputs.cache-matched-key }}"
           echo "cache-hit=${{ steps.site-cache.outputs.cache-hit }}"
-          echo "pre-migration-cache-matched-key=${{ steps.pre-migration-site-cache.outputs.cache-matched-key }}"
 
       - name: Fix cached file ownership
         run: |
@@ -194,23 +160,19 @@ jobs:
       - name: Generate Wrangler config
         working-directory: examples/gridplanet/cloudflare
         env:
-          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
           UPVOTE_KV_NAMESPACE: ${{ env.UPVOTE_KV_NAMESPACE }}
         run: |
           python - <<'PY'
           import os
           from pathlib import Path
           
-          zone_id = (os.environ.get("CLOUDFLARE_ZONE_ID") or "").strip()
           kv_id = (os.environ.get("UPVOTE_KV_NAMESPACE") or "").strip()
           
-          if not zone_id:
-            raise SystemExit("CLOUDFLARE_ZONE_ID is empty")
           if not kv_id:
             raise SystemExit("UPVOTE_KV_NAMESPACE is empty")
           
           src = Path("wrangler.toml").read_text(encoding="utf-8")
-          out = src.replace("${CLOUDFLARE_ZONE_ID}", zone_id).replace("${UPVOTE_KV_NAMESPACE}", kv_id)
+          out = src.replace("${UPVOTE_KV_NAMESPACE}", kv_id)
           Path("wrangler.generated.toml").write_text(out, encoding="utf-8")
           print("Generated wrangler.generated.toml")
           PY
@@ -218,21 +180,9 @@ jobs:
       - name: Deploy Cloudflare Worker (site + API)
         uses: cloudflare/wrangler-action@v3
         env:
-          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
           UPVOTE_KV_NAMESPACE: ${{ env.UPVOTE_KV_NAMESPACE }}
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: examples/gridplanet/cloudflare
           command: deploy --config wrangler.generated.toml
-
-      - name: Purge Cloudflare cache
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
-        run: |
-          curl -fsS -X POST \
-            "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
-            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
-            -H "Content-Type: application/json" \
-            --data '{"purge_everything":true}'
