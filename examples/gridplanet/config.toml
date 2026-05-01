@@ -1,6 +1,6 @@
-baseURL = 'https://blog.train.sh/'
+baseURL = 'https://gridpla.net/'
 languageCode = 'en-US'
-title = 'TrainShell Blog'
+title = 'Grid Planet'
 theme = 'hugo-trainsh'
 
 [module]
@@ -64,7 +64,7 @@ hasCJKLanguage = true
   mainSections = ["posts"]
   description = "Personal notes on software, AI, tools, and everyday workflows."
   favicon = "favicon.svg"
-  faviconVersion = "20260413-trainsh"
+  faviconVersion = "20260501-gridplanet"
 
 [params.translate]
   sourceLanguage = "zh"
@@ -79,7 +79,7 @@ hasCJKLanguage = true
   infoEndpoint = "/api/upvote-info"
 
 [params.social]
-  email = "shenbinbin@train.sh"
+  email = "shenbinbin@gridpla.net"
 
 [params.home]
   intro = """Personal notes on software, AI, tools, and everyday workflows."""

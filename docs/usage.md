@@ -14,7 +14,7 @@
 - `translation` 翻译提示扩展
 - `upvote` 点赞扩展
 
-当前仓库本身就是可复用模板，维护重点是根目录 Python 包、`examples/trainsh-blog/` 示例站点，以及根目录 GitHub Actions workflow。
+当前仓库本身就是可复用模板，维护重点是根目录 Python 包、`examples/gridplanet/` 示例站点，以及根目录 GitHub Actions workflow。
 
 ## 运行前准备
 
@@ -159,7 +159,7 @@ slug 会被当作 Hugo 路径使用，例如：
 
 ## 示例站点
 
-`examples/trainsh-blog/` 是当前仓库维护的参考站点，包含：
+`examples/gridplanet/` 是当前仓库维护的参考站点，包含：
 
 - Hugo 配置
 - 站点级 layout 覆盖

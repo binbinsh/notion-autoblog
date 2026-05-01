@@ -94,7 +94,7 @@ hugo mod init example.com/your-site
 
 ## 示例站点中的接入方式
 
-当前示例站点已经在 `examples/trainsh-blog/config.toml` 中导入这两个模块，并在站点级 layout 覆盖中完成接线：
+当前示例站点已经在 `examples/gridplanet/config.toml` 中导入这两个模块，并在站点级 layout 覆盖中完成接线：
 
 - `translation` 用于文章正文前的翻译提示
 - `upvote` 用于文章底部点赞区

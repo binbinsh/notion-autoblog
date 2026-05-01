@@ -5,7 +5,7 @@ compatibility_flags = ["python_workers"]
 workers_dev = true
 
 routes = [
-  { pattern = "blog.train.sh/*", zone_id = "${CLOUDFLARE_ZONE_ID}" },
+  { pattern = "gridpla.net/*", zone_id = "${CLOUDFLARE_ZONE_ID}" },
 ]
 
 [assets]

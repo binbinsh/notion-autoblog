@@ -11,7 +11,7 @@ Sync a Notion database into a Hugo site, generate optional AI summaries and mult
 
 ## Example Site
 
-The repository includes `examples/trainsh-blog/` as the maintained reference site and `.github/workflows/deploy-cloudflare.yml` as the working deployment workflow.
+The repository includes `examples/gridplanet/` as the maintained reference site and `.github/workflows/deploy-cloudflare.yml` as the working deployment workflow.
 
 ## Documentation
 
