@@ -1,10 +1,10 @@
-# upvote 模块用法
+# upvote module usage
 
-## 作用
+## Purpose
 
-`upvote` 模块提供一个 Hugo 点赞组件，以及配套的 Cloudflare Worker 后端示例。
+The `upvote` module provides a Hugo upvote component plus an example Cloudflare Worker backend.
 
-## 引入方式
+## How to include it
 
 ```toml
 [module]
@@ -14,7 +14,7 @@
     path = "github.com/binbinsh/notion-autoblog/modules/upvote"
 ```
 
-## 站点配置
+## Site configuration
 
 ```toml
 [params.upvote]
@@ -23,30 +23,30 @@
   infoEndpoint = "/api/upvote-info"
 ```
 
-## partial 接入
+## Partial
 
-推荐在文章页底部或元信息区域渲染：
+Render it at the bottom of the article page or in the metadata area:
 
 ```go-html-template
 {{ partial "upvote/widget.html" . }}
 ```
 
-## shortcode 接入
+## Shortcode
 
-如果需要在 Markdown 中手动插入：
+To insert it manually in Markdown:
 
 ```md
 {{< upvote >}}
 ```
 
-## 后端文件
+## Backend files
 
-Cloudflare Worker 示例位于：
+The example Cloudflare Worker lives at:
 
 - `cloudflare/worker.py`
 - `cloudflare/wrangler.toml`
 
-部署前需要准备：
+Prepare before deploying:
 
-- 一个 KV namespace
+- a KV namespace
 - `UPVOTE_COOKIE_SECRET`
